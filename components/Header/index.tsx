@@ -16,6 +16,7 @@ export const Header = () => {
   const navItems = [
     { label: 'Início', href: '/' },
     { label: 'Extrato', href: '/extrato' },
+    { label: 'Nova Transação', href: '/nova-transacao' },
   ]
 
   useEffect(() => {
@@ -55,13 +56,13 @@ export const Header = () => {
           <span className={`h-0.5 w-6 bg-tomato transition-transform duration-300 ${isOpen && '-rotate-45 -translate-y-1.5'}`} />
         </button>
         <div
-          className={`${isOpen ? 'block' : 'hidden'} absolute flex flex-col right-0 w-48 mt-2 mr-2 rounded-md bg-background shadow-md origin-top text-center transition-all duration-300 ease-in-out transform`}
+          className={`${isOpen ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0'} absolute z-20 flex flex-col right-0 mt-2 mr-2 rounded-md bg-background shadow-md text-center transition-all duration-300 ease-in-out transform origin-top`}
         >
           {navItems.map(({ label, href }) => {
             const isActive = pathname === href
 
             return (
-              <Link key={href} href={href} className={`p-2 ${isActive ? 'text-tomato font-bold' : 'text-black active:text-tomato/50'}`}>
+              <Link key={href} href={href} className={`px-8 py-2 ${isActive ? 'text-tomato font-bold' : 'active:text-tomato/50'}`}>
                 {label}
               </Link>)
           })}
