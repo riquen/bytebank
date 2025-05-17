@@ -5,6 +5,8 @@
   --foreground: #004D61;
   --tomato: #FF5031;
   --moss-green: #47A138;
+  --silver: #CBCBCB;
+  --azure: #DEE9EA;
 }
 
 @theme inline {
@@ -12,10 +14,17 @@
   --color-foreground: var(--foreground);
   --color-tomato: var(--tomato);
   --color-moss-green: var(--moss-green);
-  --font-sans: var(--font-inter);
+  --color-silver: var(--silver);
+  --color-azure: var(--azure);
 }
 
 body {
   background: var(--background);
-  font-family: var(--font-sans), sans-serif;
+  font-family: var(--font-inter), sans-serif;
+}
+
+@layer base {
+  main > * {
+    @apply flex-1;
+  }
 }

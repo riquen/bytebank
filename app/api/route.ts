@@ -15,19 +15,19 @@ export async function GET(): Promise<NextResponse<HomeData>> {
     weekday: 'long',
     day: '2-digit',
     month: '2-digit',
-    year: 'numeric'
+    year: 'numeric',
   })
   const dateFormatted = date[0].toUpperCase() + date.slice(1)
 
   const rawValue = faker.finance.amount({ min: 0, max: 10000 })
   const balance = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
-    currency: 'BRL'
+    currency: 'BRL',
   }).format(Number(rawValue))
 
   return NextResponse.json({
     name,
     date: dateFormatted,
-    balance
+    balance,
   })
 }
