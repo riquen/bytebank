@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import './globals.css'
 import { Header } from '@/components/Header'
+import { ToastContainer } from 'react-toastify'
+import './globals.css'
+import 'react-toastify/dist/ReactToastify.css'
 
 const inter = Inter({
   variable: '--font-inter',
@@ -25,6 +27,7 @@ export default function RootLayout({
           <Header />
           <main className="flex flex-col flex-1 container mx-auto p-6">
             {children}
+            <ToastContainer position="top-center" />
           </main>
         </div>
       </body>

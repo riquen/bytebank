@@ -3,12 +3,15 @@
 import { useState, useCallback } from 'react'
 import Image from 'next/image'
 import { imageHelper } from '@/utils/image-helper'
+import { toast } from 'react-toastify'
+import { Loader } from '@/components/Loader'
 import Card from '@/public/static/images/card.png'
 import PixelsLight from '@/public/static/images/pixels-light.png'
 
 export default function NewTransaction() {
-  const [transactionType, setTransactionType] = useState('')
   const [amount, setAmount] = useState('')
+  const [transactionType, setTransactionType] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const handleValueChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,6 +28,36 @@ export default function NewTransaction() {
 
   const canSubmit =
     transactionType !== '' && Number(amount.replace(/\D/g, '')) > 0
+
+  const handleSubmit = useCallback(async () => {
+    if (!canSubmit) return
+    setLoading(true)
+
+    try {
+      const response = await fetch('/api/transactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount,
+          transactionType,
+        }),
+      })
+      const data = await response.json()
+
+      if (response.ok) {
+        toast.success('Transação adicionada com sucesso!')
+        setAmount('')
+        setTransactionType('')
+      } else {
+        toast.error(data.error ?? 'Erro ao adicionar transação')
+      }
+    } catch (error) {
+      console.error(error)
+      toast.error('Tente novamente.')
+    } finally {
+      setLoading(false)
+    }
+  }, [amount, transactionType, canSubmit])
 
   return (
     <div className="relative flex flex-col gap-20 p-8 bg-silver rounded-lg shadow-md">
@@ -54,10 +87,11 @@ export default function NewTransaction() {
           <option value="exchange">Câmbio</option>
         </select>
         <button
-          disabled={!canSubmit}
+          disabled={!canSubmit || loading}
+          onClick={handleSubmit}
           className="py-2 rounded-lg font-semibold text-white bg-foreground disabled:opacity-50 disabled:cursor-not-allowed transition"
         >
-          Adicionar
+          {loading ? <Loader size="sm" color="background" /> : 'Adicionar'}
         </button>
       </div>
       <Image

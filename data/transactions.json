@@ -1,0 +1,32 @@
+[
+  {
+    "amount": "R$ 0,01",
+    "type": "pix",
+    "date": "18/05/2025"
+  },
+  {
+    "amount": "R$ 0,02",
+    "type": "investment",
+    "date": "18/05/2025"
+  },
+  {
+    "amount": "R$ 0,03",
+    "type": "exchange",
+    "date": "18/05/2025"
+  },
+  {
+    "amount": "R$ 0,04",
+    "type": "exchange",
+    "date": "18/05/2025"
+  },
+  {
+    "amount": "R$ 0,05",
+    "type": "investment",
+    "date": "18/05/2025"
+  },
+  {
+    "amount": "R$ 0,06",
+    "type": "pix",
+    "date": "18/05/2025"
+  }
+]
