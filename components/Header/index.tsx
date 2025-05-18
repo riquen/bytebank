@@ -47,7 +47,7 @@ export const Header = () => {
         <button
           aria-label="Menu"
           onClick={toggleMenu}
-          className="flex flex-col justify-center items-center gap-1 w-8 h-8"
+          className="flex flex-col justify-center items-center gap-1 w-8 h-8 focus:outline-none"
         >
           <span
             className={`h-0.5 w-6 bg-tomato transition-transform duration-300 ${isOpen && 'rotate-45 translate-y-1.5'}`}
@@ -69,7 +69,7 @@ export const Header = () => {
               <Link
                 key={href}
                 href={href}
-                className={`px-8 py-2 ${isActive ? 'text-tomato font-bold' : 'active:text-tomato/50'}`}
+                className={`px-8 py-2 focus:outline-none ${isActive ? 'text-tomato font-bold' : 'active:text-tomato/50'}`}
               >
                 {label}
               </Link>
