@@ -6,6 +6,7 @@
   --tomato: #FF5031;
   --moss-green: #47A138;
   --silver: #CBCBCB;
+  --battleship-gray: #8B8B8B;
   --azure: #DEE9EA;
 }
 
@@ -15,6 +16,7 @@
   --color-tomato: var(--tomato);
   --color-moss-green: var(--moss-green);
   --color-silver: var(--silver);
+  --color-battleship-gray: var(--battleship-gray);
   --color-azure: var(--azure);
 }
 

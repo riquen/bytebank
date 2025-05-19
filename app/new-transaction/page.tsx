@@ -82,9 +82,9 @@ export default function NewTransaction() {
           <option value="" disabled>
             Selecione o tipo de transação
           </option>
-          <option value="pix">PIX</option>
-          <option value="investment">Aplicação</option>
-          <option value="exchange">Câmbio</option>
+          <option value="PIX">PIX</option>
+          <option value="Aplicação">Aplicação</option>
+          <option value="Câmbio">Câmbio</option>
         </select>
         <button
           disabled={!canSubmit || loading}
