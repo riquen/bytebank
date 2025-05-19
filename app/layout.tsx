@@ -27,9 +27,9 @@ export default function RootLayout({
           <Header />
           <main className="flex flex-col flex-1 container mx-auto p-6">
             {children}
-            <ToastContainer position="top-center" />
           </main>
         </div>
+        <ToastContainer position="top-center" />
       </body>
     </html>
   )

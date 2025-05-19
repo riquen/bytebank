@@ -39,16 +39,16 @@ export default function Statement() {
         params.set('page', page.toString())
       }
 
-      const response = await fetch(`/api/transactions?${params}`)
+      const response = await fetch(`/api/transactions?${params}`, {
+        cache: 'no-store',
+      })
       if (!response.ok) throw new Error('Erro ao buscar extrato')
 
       const { transactions: batch, hasMore: more } = await response.json()
 
-      if (isHome) {
-        setTransactions(batch)
-      } else {
-        setTransactions((prev) => [...prev, ...batch])
-      }
+      setTransactions((prev) =>
+        page === 1 || isHome ? batch : [...prev, ...batch],
+      )
 
       setHasMore(more)
     } catch (err) {
@@ -63,10 +63,16 @@ export default function Statement() {
   }, [fetchPage])
 
   useEffect(() => {
-    if (inView && hasMore && !loading && !isHome) {
+    if (
+      !isHome &&
+      inView &&
+      hasMore &&
+      !loading &&
+      transactions.length >= page * LIMIT
+    ) {
       setPage((prev) => prev + 1)
     }
-  }, [inView, hasMore, loading, isHome])
+  }, [inView, hasMore, loading, isHome, page, transactions.length])
 
   return (
     <div className="flex flex-col gap-4 p-8 bg-white rounded-lg shadow-md">
@@ -85,7 +91,7 @@ export default function Statement() {
           </div>
         ))}
       </div>
-      {!isHome && <div ref={ref} className="h-px w-full" aria-hidden="true" />}
+      {!isHome && <div ref={ref} className="h-px w-full" aria-hidden />}
       {!isHome && loading && <Loader size="sm" />}
       {!isHome && !loading && !hasMore && (
         <p className="text-center text-sm text-battleship-gray">

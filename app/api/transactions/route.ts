@@ -24,7 +24,8 @@ export async function GET(request: NextRequest) {
     let hasMore: boolean
 
     if (latest) {
-      paged = transactions.slice(-limit)
+      const lastEntries = transactions.slice(-limit)
+      paged = lastEntries.reverse()
       hasMore = false
     } else {
       const start = (page - 1) * limit
