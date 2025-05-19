@@ -15,24 +15,17 @@ export async function GET(request: NextRequest) {
     const url = new URL(request.url)
     const page = parseInt(url.searchParams.get('page') ?? '1', 10)
     const limit = parseInt(url.searchParams.get('limit') ?? '5', 10)
-    const latest = url.searchParams.get('latest') === 'true'
 
     const fileContents = await readFile(dataFilePath, 'utf-8')
     const transactions = JSON.parse(fileContents)
 
-    let paged: TransactionData[]
-    let hasMore: boolean
+    const sortedTransactions = [...transactions].reverse()
 
-    if (latest) {
-      const lastEntries = transactions.slice(-limit)
-      paged = lastEntries.reverse()
-      hasMore = false
-    } else {
-      const start = (page - 1) * limit
-      const end = start + limit
-      paged = transactions.slice(start, end)
-      hasMore = end < transactions.length
-    }
+    const start = (page - 1) * limit
+    const end = start + limit
+    const paged = sortedTransactions.slice(start, end)
+
+    const hasMore = end < sortedTransactions.length
 
     return NextResponse.json({ transactions: paged, hasMore })
   } catch (err) {
