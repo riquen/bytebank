@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { readFile, writeFile } from 'fs/promises'
 import { join } from 'path'
-import type { PostRequestBody, TransactionData } from './types'
+import type { GetResponse, PostRequestBody, TransactionData } from './types'
 
 const dataFilePath = join(process.cwd(), 'data', 'transactions.json')
 
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     const hasMore = end < sortedTransactions.length
 
-    return NextResponse.json({ transactions: paged, hasMore })
+    return NextResponse.json<GetResponse>({ transactions: paged, hasMore })
   } catch (err) {
     console.error(err)
     return NextResponse.json(

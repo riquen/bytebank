@@ -5,6 +5,11 @@ export interface TransactionData {
   date: string
 }
 
+export interface GetResponse {
+  transactions: TransactionData[]
+  hasMore: boolean
+}
+
 export interface PostRequestBody {
   amount: string
   transactionType: TransactionData['type']

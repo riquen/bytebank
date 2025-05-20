@@ -4,34 +4,29 @@ import { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
 import { imageHelper } from '@/utils/image-helper'
 import { Loader } from '@/components/Loader'
-import { Statement } from '@/components/Statement'
-import { NewTransaction } from '@/components/NewTransaction'
 import Eye from '@/public/static/icons/eye.svg'
 import EyeOff from '@/public/static/icons/eye-off.svg'
 import Pig from '@/public/static/images/pig.png'
 import PixelsDark from '@/public/static/images/pixels-dark.png'
 import { type HomeData } from './api/types'
+import Statement from './statement/page'
+import NewTransaction from './new-transaction/page'
 
 export default function Home() {
   const [showBalance, setShowBalance] = useState(true)
   const [data, setData] = useState<HomeData | null>(null)
-  const [refreshKey, setRefreshKey] = useState(0)
 
   const toggleShowBalance = useCallback(
     () => setShowBalance((prev) => !prev),
     [],
   )
 
-  const handleTransactionAdded = useCallback(() => {
-    setRefreshKey((prev) => prev + 1)
-  }, [])
-
   useEffect(() => {
-    const fetchData = async () => {
+    async function load() {
       try {
         const response = await fetch('/api')
 
-        if (!response.ok) throw new Error('Erro ao buscar dados iniciais')
+        if (!response.ok) throw new Error('Erro ao buscar dados')
 
         const data = await response.json()
         setData(data)
@@ -40,12 +35,10 @@ export default function Home() {
       }
     }
 
-    fetchData()
+    load()
   }, [])
 
-  if (!data) {
-    return <Loader />
-  }
+  if (!data) return <Loader />
 
   return (
     <div className="flex flex-col gap-6">
@@ -89,8 +82,8 @@ export default function Home() {
           className="absolute bottom-0 right-0"
         />
       </div>
-      <Statement refreshKey={refreshKey} />
-      <NewTransaction onAddSuccess={handleTransactionAdded} />
+      <Statement />
+      <NewTransaction />
     </div>
   )
 }
