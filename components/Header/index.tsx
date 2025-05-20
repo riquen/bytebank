@@ -7,6 +7,11 @@ import Image from 'next/image'
 import { imageHelper } from '@/utils/image-helper'
 import Avatar from '@/public/static/icons/avatar.svg'
 
+interface NavItem {
+  label: string
+  href: string
+}
+
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -14,7 +19,7 @@ export const Header = () => {
 
   const toggleMenu = useCallback(() => setIsOpen((prev) => !prev), [])
 
-  const navItems = [
+  const navItems: NavItem[] = [
     { label: 'Início', href: '/' },
     { label: 'Extrato', href: '/statement' },
     { label: 'Nova Transação', href: '/new-transaction' },

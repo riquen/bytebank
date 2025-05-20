@@ -1,12 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { randomUUID } from 'crypto'
 import { readFile, writeFile } from 'fs/promises'
 import { join } from 'path'
-
-export interface TransactionData {
-  amount: string
-  type: string
-  date: string
-}
+import type { PostRequestBody, TransactionData } from './types'
 
 const dataFilePath = join(process.cwd(), 'data', 'transactions.json')
 
@@ -17,7 +13,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(url.searchParams.get('limit') ?? '5', 10)
 
     const fileContents = await readFile(dataFilePath, 'utf-8')
-    const transactions = JSON.parse(fileContents)
+    const transactions: TransactionData[] = JSON.parse(fileContents)
 
     const sortedTransactions = [...transactions].reverse()
 
@@ -39,7 +35,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { amount, transactionType } = await request.json()
+    const { amount, transactionType }: PostRequestBody = await request.json()
 
     if (!amount || !transactionType) {
       return NextResponse.json(
@@ -49,13 +45,14 @@ export async function POST(request: NextRequest) {
     }
 
     const newTransaction = {
+      id: randomUUID(),
       amount,
       type: transactionType,
       date: new Date().toLocaleDateString('pt-BR'),
     }
 
     const fileContents = await readFile(dataFilePath, 'utf-8')
-    const transactions = JSON.parse(fileContents)
+    const transactions: TransactionData[] = JSON.parse(fileContents)
 
     transactions.push(newTransaction)
 

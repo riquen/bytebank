@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { Header } from '@/components/Header'
 import { ToastContainer } from 'react-toastify'
-import './globals.css'
 import 'react-toastify/dist/ReactToastify.css'
+import './globals.css'
 
 const inter = Inter({
   variable: '--font-inter',

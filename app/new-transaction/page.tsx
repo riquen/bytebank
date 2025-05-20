@@ -8,7 +8,13 @@ import { Loader } from '@/components/Loader'
 import Card from '@/public/static/images/card.png'
 import PixelsLight from '@/public/static/images/pixels-light.png'
 
-export default function NewTransaction() {
+interface NewTransactionProps {
+  onAddSuccess?: () => void
+}
+
+const NewTransaction: React.FC<NewTransactionProps> = ({
+  onAddSuccess = () => {},
+}) => {
   const [amount, setAmount] = useState('')
   const [transactionType, setTransactionType] = useState('')
   const [loading, setLoading] = useState(false)
@@ -48,6 +54,7 @@ export default function NewTransaction() {
         toast.success('Transação adicionada com sucesso!')
         setAmount('')
         setTransactionType('')
+        onAddSuccess()
       } else {
         toast.error(data.error ?? 'Erro ao adicionar transação')
       }
@@ -57,7 +64,7 @@ export default function NewTransaction() {
     } finally {
       setLoading(false)
     }
-  }, [amount, transactionType, canSubmit])
+  }, [amount, transactionType, canSubmit, onAddSuccess])
 
   return (
     <div className="relative flex flex-col gap-20 p-8 bg-silver rounded-lg shadow-md">
@@ -109,3 +116,5 @@ export default function NewTransaction() {
     </div>
   )
 }
+
+export default NewTransaction

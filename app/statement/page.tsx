@@ -2,12 +2,22 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import Image from 'next/image'
+import { imageHelper } from '@/utils/image-helper'
+import Edit from '@/public/static/icons/edit.svg'
+import Delete from '@/public/static/icons/delete.svg'
 import { useInView } from 'react-intersection-observer'
-import { type TransactionData } from '../api/transactions/route'
+import { type TransactionData } from '../api/transactions/types'
 import { Loader } from '@/components/Loader'
+import { toast } from 'react-toastify'
 
-export default function Statement() {
-  const LIMIT = 5
+interface StatementProps {
+  refreshKey?: number
+}
+
+const LIMIT = 5
+
+const Statement: React.FC<StatementProps> = ({ refreshKey }) => {
   const pathname = usePathname()
   const isHome = pathname === '/'
 
@@ -74,30 +84,86 @@ export default function Statement() {
     }
   }, [inView, hasMore, loading, isHome, page, transactions.length])
 
+  useEffect(() => {
+    if (refreshKey !== undefined) {
+      setPage(1)
+      fetchPage()
+    }
+  }, [refreshKey, fetchPage])
+
+  const handleDelete = useCallback(
+    async (id: string) => {
+      try {
+        const response = await fetch(`/api/transactions/${id}`, {
+          method: 'DELETE',
+        })
+
+        if (!response.ok) throw new Error('Falha ao excluir')
+
+        setTransactions((prev) =>
+          prev.filter((transaction) => transaction.id !== id),
+        )
+
+        await fetchPage()
+
+        toast.success('Transação removida!')
+      } catch (err) {
+        console.error(err)
+        toast.error('Não foi possível excluir')
+      }
+    },
+    [fetchPage],
+  )
+
   return (
     <div className="flex flex-col gap-4 p-8 bg-white rounded-lg shadow-md">
       <h2 className="font-bold text-2xl">Extrato</h2>
       <div className="flex flex-col gap-4">
-        {transactions.map(({ amount, type, date }, index) => (
-          <div
-            key={`${index}-${type}->${amount}`}
-            className="flex items-center justify-between border-b border-moss-green py-2"
-          >
-            <div>
-              <p>{type}</p>
-              <p className="font-semibold">{amount}</p>
-              <p className="text-xs text-battleship-gray">{date}</p>
+        {transactions.length === 0 && isHome ? (
+          <p className="text-center text-sm text-battleship-gray">
+            — Você ainda não possui transações —
+          </p>
+        ) : (
+          transactions.map(({ id, amount, type, date }) => (
+            <div
+              key={id}
+              className="flex items-center justify-between border-b border-moss-green py-2"
+            >
+              <div>
+                <p>{type}</p>
+                <p className="font-semibold">{amount}</p>
+                <p className="text-xs text-battleship-gray">{date}</p>
+              </div>
+              <div className="flex gap-4">
+                <Image src={Edit} alt="Edit" style={imageHelper.intrinsic} />
+                <button
+                  onClick={() => handleDelete(id)}
+                  aria-label="Deletar transação"
+                >
+                  <Image
+                    src={Delete}
+                    alt="Delete"
+                    style={imageHelper.intrinsic}
+                  />
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
-      {!isHome && <div ref={ref} className="h-px w-full" aria-hidden />}
+      {!isHome && <div ref={ref} className="h-px w-full" aria-hidden="true" />}
       {!isHome && loading && <Loader size="sm" />}
       {!isHome && !loading && !hasMore && (
         <p className="text-center text-sm text-battleship-gray">
-          — Fim do extrato —
+          —{' '}
+          {transactions.length === 0
+            ? 'Você ainda não possui transações'
+            : 'Fim do extrato'}{' '}
+          —
         </p>
       )}
     </div>
   )
 }
+
+export default Statement

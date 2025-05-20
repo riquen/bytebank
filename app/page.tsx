@@ -8,29 +8,46 @@ import Eye from '@/public/static/icons/eye.svg'
 import EyeOff from '@/public/static/icons/eye-off.svg'
 import Pig from '@/public/static/images/pig.png'
 import PixelsDark from '@/public/static/images/pixels-dark.png'
-import { type HomeData } from './api/route'
-import Extrato from './statement/page'
-import NovaTransacao from './new-transaction/page'
+import { type HomeData } from './api/types'
+import Statement from './statement/page'
+import NewTransaction from './new-transaction/page'
 
 export default function Home() {
   const [showBalance, setShowBalance] = useState(true)
   const [data, setData] = useState<HomeData | null>(null)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const toggleShowBalance = useCallback(
     () => setShowBalance((prev) => !prev),
     [],
   )
 
-  useEffect(() => {
-    fetch('/api')
-      .then((res) => res.json() as Promise<HomeData>)
-      .then(setData)
-      .catch(console.error)
+  const handleTransactionAdded = useCallback(() => {
+    setRefreshKey((prev) => prev + 1)
   }, [])
 
-  return !data ? (
-    <Loader />
-  ) : (
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('/api')
+
+        if (!response.ok) throw new Error('Erro ao buscar dados iniciais')
+
+        const data = await response.json()
+        setData(data)
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+  if (!data) {
+    return <Loader />
+  }
+
+  return (
     <div className="flex flex-col gap-6">
       <div className="relative flex flex-col gap-20 p-8 bg-foreground rounded-lg shadow-md text-white">
         <div className="flex flex-col gap-6">
@@ -45,7 +62,7 @@ export default function Home() {
               >
                 <Image
                   src={showBalance ? Eye : EyeOff}
-                  alt={showBalance ? 'Eye off' : 'Eye'}
+                  alt={showBalance ? 'EyeOff' : 'Eye'}
                   style={imageHelper.intrinsic}
                 />
               </button>
@@ -72,8 +89,8 @@ export default function Home() {
           className="absolute bottom-0 right-0"
         />
       </div>
-      <Extrato />
-      <NovaTransacao />
+      <Statement refreshKey={refreshKey} />
+      <NewTransaction onAddSuccess={handleTransactionAdded} />
     </div>
   )
 }
