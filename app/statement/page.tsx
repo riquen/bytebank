@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
+import { useSWRConfig } from 'swr'
 import useSWRInfinite from 'swr/infinite'
 import { useInView } from 'react-intersection-observer'
 import { toast } from 'react-toastify'
@@ -9,7 +10,7 @@ import Image from 'next/image'
 import { imageHelper } from '@/utils/image-helper'
 import Edit from '@/public/static/icons/edit.svg'
 import Delete from '@/public/static/icons/delete.svg'
-import { type GetResponse } from '@/app/api/transactions/types'
+import type { GetResponse, TransactionData } from '@/app/api/transactions/types'
 import { Loader } from '@/components/Loader'
 
 const LIMIT = 5
@@ -34,13 +35,18 @@ export default function Statement() {
     return `/api/transactions?${params.toString()}`
   }
 
-  const { data, error, size, setSize, mutate, isValidating } = useSWRInfinite(
-    getKey,
-    fetcher,
-    { revalidateFirstPage: false },
-  )
+  const {
+    data,
+    error,
+    size,
+    setSize,
+    mutate: localMutate,
+    isValidating,
+  } = useSWRInfinite(getKey, fetcher, { revalidateFirstPage: isHome })
+  const { mutate: globalMutate } = useSWRConfig()
 
-  const transactions = data?.flatMap((item) => item.transactions) ?? []
+  const transactions: TransactionData[] =
+    data?.flatMap((item) => item.transactions) ?? []
   const hasMore = data ? data[data.length - 1].hasMore : true
 
   const { ref, inView } = useInView({
@@ -49,10 +55,10 @@ export default function Statement() {
   })
 
   useEffect(() => {
-    if (!isHome && inView && hasMore && !isValidating) {
+    if (!isHome && inView && hasMore && !isValidating && !error) {
       setSize(size + 1)
     }
-  }, [inView, hasMore, isValidating, isHome, size, setSize])
+  }, [inView, hasMore, isValidating, error, isHome, size, setSize])
 
   const handleDelete = async (id: string) => {
     try {
@@ -62,7 +68,12 @@ export default function Statement() {
 
       if (!response.ok) throw new Error()
 
-      await mutate()
+      await localMutate()
+      await globalMutate(
+        (key: string) => key.startsWith('/api/transactions'),
+        undefined,
+        { revalidate: true },
+      )
       toast.success('Transação removida!')
     } catch {
       toast.error('Não foi possível excluir')
@@ -110,9 +121,6 @@ export default function Statement() {
       {!isHome && <div ref={ref} className="h-px w-full" aria-hidden="true" />}
       {!isHome && isValidating && <Loader size="sm" />}
       {!isHome && !hasMore && (
-        // <p className="text-center text-sm text-battleship-gray">
-        //   — Fim do extrato —
-        // </p>
         <p className="text-center text-sm text-battleship-gray">
           {transactions.length === 0
             ? '— Você ainda não possui transações —'
