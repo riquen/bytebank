@@ -29,7 +29,13 @@ export default function RootLayout({
             {children}
           </main>
         </div>
-        <ToastContainer position="top-center" />
+        <ToastContainer
+          position="top-right"
+          autoClose={2000}
+          closeOnClick
+          draggable
+          style={{ top: '6rem' }}
+        />
       </body>
     </html>
   )
