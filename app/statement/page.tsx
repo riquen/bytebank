@@ -84,7 +84,22 @@ export default function Statement() {
 
   return (
     <div className="flex flex-col gap-4 p-8 bg-white rounded-lg shadow-md">
-      <h2 className="font-bold text-2xl">Extrato</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="font-bold text-2xl">Extrato</h2>
+        {isHome && (
+          <button
+            disabled={isValidating}
+            onClick={() => localMutate()}
+            className="px-2 py-1 rounded bg-foreground font-semibold text-white disabled:opacity-50 focus:outline-none"
+          >
+            {isValidating ? (
+              <Loader size="sm" color="background" />
+            ) : (
+              'Atualizar'
+            )}
+          </button>
+        )}
+      </div>
       <div className="flex flex-col gap-4">
         {transactions.length === 0 && isHome ? (
           <p className="text-center text-sm text-battleship-gray">
@@ -106,6 +121,7 @@ export default function Statement() {
                 <button
                   onClick={() => handleDelete(id)}
                   aria-label="Deletar transação"
+                  className="focus:outline-none"
                 >
                   <Image
                     src={Delete}

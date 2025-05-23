@@ -94,7 +94,7 @@ export default function NewTransaction() {
         <button
           disabled={!canSubmit || loading}
           onClick={handleSubmit}
-          className="py-2 rounded-lg font-semibold text-white bg-foreground disabled:opacity-50 disabled:cursor-not-allowed transition"
+          className="py-2 rounded-lg bg-foreground font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed transition"
         >
           {loading ? <Loader size="sm" color="background" /> : 'Adicionar'}
         </button>
