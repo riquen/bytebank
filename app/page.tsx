@@ -10,7 +10,7 @@ import Pig from '@/public/static/images/pig.png'
 import PixelsDark from '@/public/static/images/pixels-dark.png'
 import { type HomeData } from './api/types'
 import Statement from './statement/page'
-import { NewTransaction } from './new-transaction/NewTransaction'
+import NewTransaction from './new-transaction/page'
 
 export default function Home() {
   const [showBalance, setShowBalance] = useState(true)
@@ -83,7 +83,7 @@ export default function Home() {
         />
       </div>
       <Statement />
-      <NewTransaction initialId={null} />
+      <NewTransaction />
     </div>
   )
 }
