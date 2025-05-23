@@ -13,7 +13,7 @@ export default function NewTransaction() {
   const [amount, setAmount] = useState('')
   const [transactionType, setTransactionType] = useState('')
   const [loading, setLoading] = useState(false)
-  const { mutate } = useSWRConfig()
+  const { mutate: globalMutate } = useSWRConfig()
 
   const handleSubmit = useCallback(async () => {
     if (!transactionType || Number(amount.replace(/\D/g, '')) <= 0) return
@@ -32,7 +32,11 @@ export default function NewTransaction() {
         setAmount('')
         setTransactionType('')
 
-        await mutate('/api/transactions')
+        await globalMutate(
+          (key: string) => key.startsWith('/api/transactions'),
+          undefined,
+          { revalidate: true },
+        )
       } else {
         toast.error(data.error ?? 'Erro ao adicionar transação')
       }
@@ -42,7 +46,7 @@ export default function NewTransaction() {
     } finally {
       setLoading(false)
     }
-  }, [amount, transactionType, mutate])
+  }, [amount, transactionType, globalMutate])
 
   const handleValueChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
