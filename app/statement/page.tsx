@@ -26,11 +26,9 @@ export default function Statement() {
 
     const params = new URLSearchParams({ limit: LIMIT.toString() })
 
-    if (isHome) {
-      params.set('latest', 'true')
-    } else {
-      params.set('page', String(pageIndex + 1))
-    }
+    isHome
+      ? params.set('latest', 'true')
+      : params.set('page', String(pageIndex + 1))
 
     return `/api/transactions?${params.toString()}`
   }
@@ -46,7 +44,7 @@ export default function Statement() {
   const { mutate: globalMutate } = useSWRConfig()
 
   const transactions: TransactionData[] =
-    data?.flatMap((item) => item.transactions) ?? []
+    data?.flatMap((page) => page.transactions) ?? []
   const hasMore = data ? data[data.length - 1].hasMore : true
 
   const { ref, inView } = useInView({
@@ -80,7 +78,7 @@ export default function Statement() {
     }
   }
 
-  if (!data && !error) return <Loader />
+  if (!data) return <Loader />
 
   return (
     <div className="flex flex-col gap-4 p-8 bg-white rounded-lg shadow-md">
@@ -101,7 +99,7 @@ export default function Statement() {
         )}
       </div>
       <div className="flex flex-col gap-4">
-        {transactions.length === 0 && isHome ? (
+        {transactions.length === 0 ? (
           <p className="text-center text-sm text-battleship-gray">
             — Você ainda não possui transações —
           </p>
@@ -136,11 +134,9 @@ export default function Statement() {
       </div>
       {!isHome && <div ref={ref} className="h-px w-full" aria-hidden="true" />}
       {!isHome && isValidating && <Loader size="sm" />}
-      {!isHome && !hasMore && (
+      {!isHome && !hasMore && transactions.length > 0 && (
         <p className="text-center text-sm text-battleship-gray">
-          {transactions.length === 0
-            ? '— Você ainda não possui transações —'
-            : '— Fim do extrato —'}
+          — Fim do extrato —
         </p>
       )}
     </div>
