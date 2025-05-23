@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useSWRConfig } from 'swr'
 import { toast } from 'react-toastify'
 import Image from 'next/image'
@@ -8,45 +9,83 @@ import { imageHelper } from '@/utils/image-helper'
 import { Loader } from '@/components/Loader'
 import Card from '@/public/static/images/card.png'
 import PixelsLight from '@/public/static/images/pixels-light.png'
+import type { TransactionData } from '@/app/api/transactions/types'
 
 export default function NewTransaction() {
+  const router = useRouter()
+  const { mutate: globalMutate } = useSWRConfig()
+
+  const isClient = typeof window !== 'undefined'
+  const id = isClient
+    ? new URLSearchParams(window.location.search).get('id')
+    : null
+  const isEdit = Boolean(id)
+
   const [amount, setAmount] = useState('')
   const [transactionType, setTransactionType] = useState('')
   const [loading, setLoading] = useState(false)
-  const { mutate: globalMutate } = useSWRConfig()
+  const [loadingTransaction, setLoadingTransaction] = useState(isEdit)
+
+  useEffect(() => {
+    if (!isClient || !isEdit) return
+
+    const fetchTransaction = async () => {
+      try {
+        const response = await fetch(`/api/transactions/${id}`)
+
+        if (!response.ok) throw new Error()
+
+        const { transaction }: { transaction: TransactionData } =
+          await response.json()
+
+        setAmount(transaction.amount)
+        setTransactionType(transaction.type)
+      } catch {
+        toast.error('Erro ao carregar transação')
+      } finally {
+        setLoadingTransaction(false)
+      }
+    }
+
+    fetchTransaction()
+  }, [isClient, isEdit, id])
 
   const handleSubmit = useCallback(async () => {
     if (!transactionType || Number(amount.replace(/\D/g, '')) <= 0) return
     setLoading(true)
 
     try {
-      const response = await fetch('/api/transactions', {
-        method: 'POST',
+      const url = isEdit ? `/api/transactions/${id}` : '/api/transactions'
+      const method = isEdit ? 'PATCH' : 'POST'
+
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount, transactionType }),
       })
-      const data = await response.json()
 
-      if (response.ok) {
-        toast.success('Transação adicionada com sucesso!')
-        setAmount('')
-        setTransactionType('')
+      if (!response.ok) throw new Error()
 
-        await globalMutate(
-          (key: string) => key.startsWith('/api/transactions'),
-          undefined,
-          { revalidate: true },
-        )
-      } else {
-        toast.error(data.error ?? 'Erro ao adicionar transação')
-      }
-    } catch (error) {
-      console.error(error)
-      toast.error('Tente novamente.')
+      toast.success(
+        `Transação ${isEdit ? 'atualizada' : 'adicionada'} com sucesso!`,
+      )
+      setAmount('')
+      setTransactionType('')
+
+      await globalMutate(
+        (key: string) => key.startsWith('/api/transactions'),
+        undefined,
+        { revalidate: true },
+      )
+
+      if (isEdit) router.back()
+    } catch (err) {
+      console.error(err)
+      toast.error('Erro ao salvar transação')
     } finally {
       setLoading(false)
     }
-  }, [amount, transactionType, globalMutate])
+  }, [amount, transactionType, id, isEdit, router, globalMutate])
 
   const handleValueChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,10 +103,14 @@ export default function NewTransaction() {
   const canSubmit =
     transactionType !== '' && Number(amount.replace(/\D/g, '')) > 0
 
+  if (loadingTransaction) return <Loader />
+
   return (
     <div className="relative flex flex-col gap-20 p-8 bg-silver rounded-lg shadow-md">
       <div className="flex flex-col gap-6 text-center">
-        <h2 className="font-bold text-2xl text-foreground">Nova transação</h2>
+        <h2 className="font-bold text-2xl text-foreground">
+          {isEdit ? 'Editar transação' : 'Nova transação'}
+        </h2>
         <input
           id="amount"
           type="text"
@@ -96,7 +139,7 @@ export default function NewTransaction() {
           onClick={handleSubmit}
           className="py-2 rounded-lg bg-foreground font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed transition"
         >
-          {loading ? <Loader size="sm" color="background" /> : 'Adicionar'}
+          {loading ? <Loader size="sm" color="background" /> : 'Salvar'}
         </button>
       </div>
       <Image

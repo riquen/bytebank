@@ -34,7 +34,7 @@ export default function RootLayout({
           autoClose={2000}
           closeOnClick
           draggable
-          style={{ top: '6rem' }}
+          style={{ top: '6rem', zIndex: 10 }}
         />
       </body>
     </html>

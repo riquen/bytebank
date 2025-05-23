@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useSWRConfig } from 'swr'
 import useSWRInfinite from 'swr/infinite'
 import { useInView } from 'react-intersection-observer'
@@ -18,6 +18,7 @@ const fetcher = (url: string) =>
   fetch(url).then((response) => response.json() as Promise<GetResponse>)
 
 export default function Statement() {
+  const router = useRouter()
   const pathname = usePathname()
   const isHome = pathname === '/'
 
@@ -115,7 +116,13 @@ export default function Statement() {
                 <p className="text-xs text-battleship-gray">{date}</p>
               </div>
               <div className="flex gap-4">
-                <Image src={Edit} alt="Edit" style={imageHelper.intrinsic} />
+                <button
+                  onClick={() => router.push(`/new-transaction?id=${id}`)}
+                  aria-label="Editar transação"
+                  className="focus:outline-none"
+                >
+                  <Image src={Edit} alt="Edit" style={imageHelper.intrinsic} />
+                </button>
                 <button
                   onClick={() => handleDelete(id)}
                   aria-label="Deletar transação"
