@@ -67,11 +67,10 @@ export default function Statement() {
       if (!response.ok) throw new Error()
 
       await localMutate()
-      await globalMutate(
-        (key: string) => key.startsWith('/api/transactions'),
-        undefined,
-        { revalidate: true },
-      )
+
+      if (!isHome) {
+        await globalMutate('/api/transactions?latest=true')
+      }
       toast.success('Transação removida!')
     } catch {
       toast.error('Não foi possível excluir')
