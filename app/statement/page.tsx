@@ -82,7 +82,7 @@ export default function Statement() {
   if (!data) return <Loader />
 
   return (
-    <div className="flex flex-col gap-4 p-8 bg-white rounded-lg shadow-md">
+    <div className="flex flex-col gap-4 p-6 bg-white rounded-lg shadow-md">
       <div className="flex items-center justify-between">
         <h2 className="font-bold text-2xl">Extrato</h2>
         {isHome && (
@@ -110,10 +110,10 @@ export default function Statement() {
               key={id}
               className="flex items-center justify-between border-b border-moss-green py-2"
             >
-              <div>
-                <p>{type}</p>
-                <p className="font-semibold">{amount}</p>
-                <p className="text-xs text-battleship-gray">{date}</p>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:w-full">
+                <p className="sm:flex-1">{type}</p>
+                <p className="sm:flex-1 font-semibold">{amount}</p>
+                <p className="sm:flex-1 text-xs text-battleship-gray">{date}</p>
               </div>
               <div className="flex gap-4">
                 <button

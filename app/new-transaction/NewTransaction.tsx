@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useSWRConfig } from 'swr'
 import { toast } from 'react-toastify'
 import Image from 'next/image'
@@ -17,8 +17,10 @@ interface NewTransactionProps {
 
 export const NewTransaction = ({ id }: NewTransactionProps) => {
   const router = useRouter()
+  const pathname = usePathname()
   const { mutate: globalMutate } = useSWRConfig()
   const isEdit = Boolean(id)
+  const isHome = pathname === '/'
 
   const [amount, setAmount] = useState('')
   const [transactionType, setTransactionType] = useState('')
@@ -108,8 +110,12 @@ export const NewTransaction = ({ id }: NewTransactionProps) => {
     !loading && transactionType !== '' && Number(amount.replace(/\D/g, '')) > 0
 
   return (
-    <div className="relative flex flex-col gap-20 p-8 bg-silver rounded-lg shadow-md">
-      <div className="flex flex-col gap-6 text-center">
+    <div
+      className={`relative flex flex-col gap-20 sm:gap-4 p-6 bg-silver rounded-lg shadow-md sm:basis-1/2 ${!isHome && 'sm:flex-row sm:justify-between'}`}
+    >
+      <div
+        className={`flex flex-col gap-6 text-center ${!isHome && 'sm:basis-1/2'}`}
+      >
         <h2 className="font-bold text-2xl text-foreground">
           {isEdit ? 'Editar transação' : 'Nova transação'}
         </h2>

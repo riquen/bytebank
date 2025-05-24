@@ -48,7 +48,7 @@ export const Header = () => {
   return (
     <header className="sticky top-0 z-20 flex justify-between items-center p-6 bg-foreground">
       <Image src={Avatar} alt="Avatar" style={imageHelper.intrinsic} />
-      <div ref={wrapperRef}>
+      <div ref={wrapperRef} className="sm:hidden">
         <button
           aria-label="Menu"
           onClick={toggleMenu}
@@ -82,6 +82,21 @@ export const Header = () => {
           })}
         </div>
       </div>
+      <nav className="hidden sm:flex gap-4">
+        {navItems.map(({ label, href }) => {
+          const isActive = pathname === href
+
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={`px-4 py-2 focus:outline-none ${isActive ? 'text-tomato font-bold' : 'text-white active:text-tomato/80'}`}
+            >
+              {label}
+            </Link>
+          )
+        })}
+      </nav>
     </header>
   )
 }
