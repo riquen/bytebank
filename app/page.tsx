@@ -51,7 +51,7 @@ export default function Home() {
               <div className="flex gap-6">
                 <h3 className="font-semibold text-xl">Saldo</h3>
                 <button
-                  className="focus:outline-none"
+                  className="px-1 rounded-full cursor-pointer focus:outline-none active:bg-background/10 hover:bg-background/10 transition-colors"
                   onClick={toggleShowBalance}
                 >
                   <Image

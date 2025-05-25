@@ -145,7 +145,7 @@ export const NewTransaction = ({ id }: NewTransactionProps) => {
         <button
           disabled={!canSubmit}
           onClick={handleSubmit}
-          className="py-2 rounded-lg bg-foreground font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed transition"
+          className="py-2 rounded-lg bg-foreground cursor-pointer font-semibold text-white focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed active:opacity-80 hover:opacity-80 transition-opacity"
         >
           {loading ? <Loader size="sm" color="background" /> : 'Salvar'}
         </button>

@@ -89,7 +89,7 @@ export default function Statement() {
           <button
             disabled={isValidating}
             onClick={() => localMutate()}
-            className="px-2 py-1 rounded bg-foreground font-semibold text-white disabled:opacity-50 focus:outline-none"
+            className="px-2 py-1 rounded bg-foreground cursor-pointer font-semibold text-white disabled:opacity-50 focus:outline-none hover:opacity-80 transition-opacity"
           >
             {isValidating ? (
               <Loader size="sm" color="background" />
@@ -119,14 +119,14 @@ export default function Statement() {
                 <button
                   onClick={() => router.push(`/new-transaction?id=${id}`)}
                   aria-label="Editar transação"
-                  className="focus:outline-none"
+                  className="p-px rounded-full cursor-pointer focus:outline-none active:bg-foreground/20 hover:bg-foreground/20 transition-colors"
                 >
                   <Image src={Edit} alt="Edit" style={imageHelper.intrinsic} />
                 </button>
                 <button
                   onClick={() => handleDelete(id)}
                   aria-label="Deletar transação"
-                  className="focus:outline-none"
+                  className="p-px rounded-full cursor-pointer focus:outline-none active:bg-foreground/20 hover:bg-foreground/20 transition-colors"
                 >
                   <Image
                     src={Delete}

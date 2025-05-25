@@ -52,7 +52,7 @@ export const Header = () => {
         <button
           aria-label="Menu"
           onClick={toggleMenu}
-          className="flex flex-col justify-center items-center gap-1 w-8 h-8 focus:outline-none"
+          className="flex flex-col justify-center items-center gap-1 w-8 h-8 rounded focus:outline-none active:bg-background/10 transition-colors"
         >
           <span
             className={`h-0.5 w-6 bg-tomato transition-transform duration-300 ${isOpen && 'rotate-45 translate-y-1.5'}`}
@@ -74,7 +74,7 @@ export const Header = () => {
               <Link
                 key={href}
                 href={href}
-                className={`px-8 py-2 focus:outline-none ${isActive ? 'text-tomato font-bold' : 'active:text-tomato/50'}`}
+                className={`px-8 py-2 focus:outline-none ${isActive ? 'text-tomato font-bold' : 'active:text-tomato/50 transition-colors'}`}
               >
                 {label}
               </Link>
@@ -90,7 +90,7 @@ export const Header = () => {
             <Link
               key={href}
               href={href}
-              className={`px-4 py-2 focus:outline-none ${isActive ? 'text-tomato font-bold' : 'text-white active:text-tomato/80'}`}
+              className={`px-4 py-2 focus:outline-none ${isActive ? 'text-tomato font-bold' : 'text-white active:text-tomato/80 hover:text-tomato/80 transition-colors'}`}
             >
               {label}
             </Link>
