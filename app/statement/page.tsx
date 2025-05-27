@@ -85,19 +85,13 @@ export default function Statement() {
     <div className="flex flex-col gap-4 p-6 bg-white rounded-lg shadow-md">
       <div className="flex items-center justify-between">
         <h2 className="font-bold text-2xl">Extrato</h2>
-        {isHome && (
-          <button
-            disabled={isValidating}
-            onClick={() => localMutate()}
-            className="px-2 py-1 rounded bg-foreground cursor-pointer font-semibold text-white disabled:opacity-50 focus:outline-none hover:opacity-80 transition-opacity"
-          >
-            {isValidating ? (
-              <Loader size="sm" color="background" />
-            ) : (
-              'Atualizar'
-            )}
-          </button>
-        )}
+        <button
+          disabled={isValidating}
+          onClick={() => localMutate()}
+          className="px-2 py-1 rounded bg-foreground cursor-pointer font-semibold text-white disabled:opacity-50 focus:outline-none hover:opacity-80 transition-opacity"
+        >
+          {isValidating ? <Loader size="sm" color="background" /> : 'Atualizar'}
+        </button>
       </div>
       <div className="flex flex-col gap-4">
         {transactions.length === 0 ? (
