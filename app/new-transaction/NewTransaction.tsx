@@ -12,14 +12,14 @@ import PixelsLight from '@/public/static/images/pixels-light.png'
 import type { TransactionData } from '@/app/api/transactions/types'
 
 interface NewTransactionProps {
-  id?: string
+  transaction_id?: string
 }
 
-export const NewTransaction = ({ id }: NewTransactionProps) => {
+export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
   const router = useRouter()
   const pathname = usePathname()
   const { mutate: globalMutate } = useSWRConfig()
-  const isEdit = Boolean(id)
+  const isEdit = Boolean(transaction_id)
   const isHome = pathname === '/'
 
   const [amount, setAmount] = useState('')
@@ -35,15 +35,15 @@ export const NewTransaction = ({ id }: NewTransactionProps) => {
 
     const fetchTransaction = async () => {
       try {
-        const response = await fetch(`/api/transactions/${id}`)
+        const response = await fetch(`/api/transactions/${transaction_id}`)
 
         if (!response.ok) throw new Error()
 
-        const { transaction }: { transaction: TransactionData } =
+        const { amount, transaction_type }: TransactionData =
           await response.json()
 
-        setAmount(transaction.amount)
-        setTransactionType(transaction.type)
+        setAmount(amount)
+        setTransactionType(transaction_type)
       } catch {
         toast.error('Erro ao carregar transação')
       } finally {
@@ -52,20 +52,22 @@ export const NewTransaction = ({ id }: NewTransactionProps) => {
     }
 
     fetchTransaction()
-  }, [id, isEdit])
+  }, [transaction_id, isEdit])
 
   const handleSubmit = useCallback(async () => {
     if (!transactionType || Number(amount.replace(/\D/g, '')) <= 0) return
     setLoading(true)
 
     try {
-      const url = isEdit ? `/api/transactions/${id}` : '/api/transactions'
+      const url = isEdit
+        ? `/api/transactions/${transaction_id}`
+        : '/api/transactions'
       const method = isEdit ? 'PATCH' : 'POST'
 
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount, transactionType }),
+        body: JSON.stringify({ amount, transaction_type: transactionType }),
       })
 
       if (!response.ok) throw new Error()
@@ -89,7 +91,7 @@ export const NewTransaction = ({ id }: NewTransactionProps) => {
     } finally {
       setLoading(false)
     }
-  }, [amount, transactionType, id, isEdit, router, globalMutate])
+  }, [amount, transactionType, transaction_id, isEdit, router, globalMutate])
 
   const handleValueChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {

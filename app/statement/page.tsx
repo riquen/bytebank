@@ -59,9 +59,9 @@ export default function Statement() {
     }
   }, [inView, hasMore, isValidating, error, isHome, size, setSize])
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (transaction_id: string) => {
     try {
-      const response = await fetch(`/api/transactions/${id}`, {
+      const response = await fetch(`/api/transactions/${transaction_id}`, {
         method: 'DELETE',
       })
 
@@ -105,38 +105,50 @@ export default function Statement() {
             — Você ainda não possui transações —
           </p>
         ) : (
-          transactions.map(({ id, amount, type, date }) => (
-            <div
-              key={id}
-              className="flex items-center justify-between border-b border-moss-green py-2"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center sm:w-full">
-                <p className="sm:flex-1">{type}</p>
-                <p className="sm:flex-1 font-semibold">{amount}</p>
-                <p className="sm:flex-1 text-xs text-battleship-gray">{date}</p>
+          transactions.map(
+            ({ transaction_id, amount, transaction_type, date }) => (
+              <div
+                key={transaction_id}
+                className="flex items-center justify-between border-b border-moss-green py-2"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center sm:w-full">
+                  <p className="sm:flex-1">{transaction_type}</p>
+                  <p className="sm:flex-1 font-semibold">{amount}</p>
+                  <p className="sm:flex-1 text-xs text-battleship-gray">
+                    {date}
+                  </p>
+                </div>
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => {
+                      router.push(
+                        `/new-transaction?transaction_id=${transaction_id}`,
+                      )
+                    }}
+                    aria-label="Editar transação"
+                    className="p-px rounded-full cursor-pointer focus:outline-none active:bg-foreground/20 hover:bg-foreground/20 transition-colors"
+                  >
+                    <Image
+                      src={Edit}
+                      alt="Edit"
+                      style={imageHelper.intrinsic}
+                    />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(transaction_id)}
+                    aria-label="Deletar transação"
+                    className="p-px rounded-full cursor-pointer focus:outline-none active:bg-foreground/20 hover:bg-foreground/20 transition-colors"
+                  >
+                    <Image
+                      src={Delete}
+                      alt="Delete"
+                      style={imageHelper.intrinsic}
+                    />
+                  </button>
+                </div>
               </div>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => router.push(`/new-transaction?id=${id}`)}
-                  aria-label="Editar transação"
-                  className="p-px rounded-full cursor-pointer focus:outline-none active:bg-foreground/20 hover:bg-foreground/20 transition-colors"
-                >
-                  <Image src={Edit} alt="Edit" style={imageHelper.intrinsic} />
-                </button>
-                <button
-                  onClick={() => handleDelete(id)}
-                  aria-label="Deletar transação"
-                  className="p-px rounded-full cursor-pointer focus:outline-none active:bg-foreground/20 hover:bg-foreground/20 transition-colors"
-                >
-                  <Image
-                    src={Delete}
-                    alt="Delete"
-                    style={imageHelper.intrinsic}
-                  />
-                </button>
-              </div>
-            </div>
-          ))
+            ),
+          )
         )}
       </div>
       {!isHome && <div ref={ref} className="h-px w-full" aria-hidden="true" />}

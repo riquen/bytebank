@@ -1,29 +1,32 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { randomUUID } from 'crypto'
-import { readFile, writeFile } from 'fs/promises'
-import { join } from 'path'
-import type { GetResponse, PostRequestBody, TransactionData } from './types'
-
-const dataFilePath = join(process.cwd(), 'data', 'transactions.json')
+import { supabase } from '@/lib/supabase'
+import type { GetResponse, PostRequestBody } from './types'
 
 export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url)
     const page = parseInt(url.searchParams.get('page') ?? '1', 10)
     const limit = parseInt(url.searchParams.get('limit') ?? '5', 10)
+    const from = (page - 1) * limit
+    const to = from + limit - 1
 
-    const fileContents = await readFile(dataFilePath, 'utf-8')
-    const transactions: TransactionData[] = JSON.parse(fileContents)
+    const { data, error, count } = await supabase
+      .from('transactions')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(from, to)
 
-    const sortedTransactions = [...transactions].reverse()
+    if (error) {
+      console.error(error)
+      return NextResponse.json(
+        { error: 'Erro ao buscar transações' },
+        { status: 500 },
+      )
+    }
 
-    const start = (page - 1) * limit
-    const end = start + limit
-    const paged = sortedTransactions.slice(start, end)
+    const hasMore = to + 1 < (count ?? 0)
 
-    const hasMore = end < sortedTransactions.length
-
-    return NextResponse.json<GetResponse>({ transactions: paged, hasMore })
+    return NextResponse.json<GetResponse>({ transactions: data, hasMore })
   } catch (err) {
     console.error(err)
     return NextResponse.json(
@@ -35,34 +38,40 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { amount, transactionType }: PostRequestBody = await request.json()
+    const { amount, transaction_type }: PostRequestBody = await request.json()
 
-    if (!amount || !transactionType) {
+    if (!amount || !transaction_type) {
       return NextResponse.json(
         { error: 'Verifique os campos e tente novamente' },
         { status: 400 },
       )
     }
 
-    const newTransaction = {
-      id: randomUUID(),
-      amount,
-      type: transactionType,
-      date: new Date().toLocaleDateString('pt-BR'),
+    const { data, error } = await supabase
+      .from('transactions')
+      .insert([
+        {
+          amount,
+          transaction_type: transaction_type,
+          date: new Date().toLocaleDateString('pt-BR'),
+        },
+      ])
+      .select('*')
+      .single()
+
+    if (error) {
+      console.error(error)
+      return NextResponse.json(
+        { error: 'Erro ao criar transação' },
+        { status: 500 },
+      )
     }
 
-    const fileContents = await readFile(dataFilePath, 'utf-8')
-    const transactions: TransactionData[] = JSON.parse(fileContents)
-
-    transactions.push(newTransaction)
-
-    await writeFile(
-      dataFilePath,
-      JSON.stringify(transactions, null, 2),
-      'utf-8',
-    )
-
-    return NextResponse.json({ success: true, transaction: newTransaction })
+    return NextResponse.json({
+      status: 201,
+      success: true,
+      transaction: data,
+    })
   } catch (err) {
     console.error(err)
     return NextResponse.json(

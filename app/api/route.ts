@@ -1,10 +1,22 @@
 import { NextResponse } from 'next/server'
-import { faker } from '@faker-js/faker'
+import { supabase } from '@/lib/supabase'
 import { type HomeData } from './types'
 
 export async function GET() {
   try {
-    const name = faker.person.firstName()
+    const { data, error } = await supabase
+      .from('user')
+      .select('name, balance')
+      .limit(1)
+      .single()
+
+    if (error) {
+      console.error(error)
+      return NextResponse.json(
+        { error: 'Usuário não encontrado' },
+        { status: 404 },
+      )
+    }
 
     const now = new Date()
     const date = now.toLocaleDateString('pt-BR', {
@@ -15,21 +27,15 @@ export async function GET() {
     })
     const dateFormatted = date[0].toUpperCase() + date.slice(1)
 
-    const rawValue = faker.finance.amount({ min: 0, max: 10000 })
-    const balance = new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(Number(rawValue))
-
     return NextResponse.json<HomeData>({
-      name,
+      name: data.name,
       date: dateFormatted,
-      balance,
+      balance: data.balance,
     })
   } catch (err) {
     console.error(err)
     return NextResponse.json(
-      { error: 'Não foi possível gerar os dados iniciais' },
+      { error: 'Erro ao buscar dados iniciais' },
       { status: 500 },
     )
   }
