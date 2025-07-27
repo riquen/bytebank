@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import type { GetResponse, PostRequestBody } from './types'
+import { transactionHelper } from '@/utils/transaction-helper'
 
 export async function GET(request: NextRequest) {
   try {
@@ -47,6 +48,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const { data: user, error: userError } = await supabase
+      .from('user')
+      .select('id, balance')
+      .limit(1)
+      .single()
+
+    if (userError) {
+      console.error(userError)
+      return NextResponse.json(
+        { error: 'Erro ao atualizar saldo' },
+        { status: 500 },
+      )
+    }
+
+    const amountNumber = transactionHelper.parseAmount(amount)
+    const balanceNumber = transactionHelper.parseAmount(user.balance)
+    const delta = transactionHelper.isOutgoing(transaction_type)
+      ? -amountNumber
+      : amountNumber
+    const newBalance = balanceNumber + delta
+
     const { data, error } = await supabase
       .from('transactions')
       .insert([
@@ -63,6 +85,19 @@ export async function POST(request: NextRequest) {
       console.error(error)
       return NextResponse.json(
         { error: 'Erro ao criar transação' },
+        { status: 500 },
+      )
+    }
+
+    const { error: balanceError } = await supabase
+      .from('user')
+      .update({ balance: transactionHelper.formatAmount(newBalance) })
+      .eq('id', user.id)
+
+    if (balanceError) {
+      console.error(balanceError)
+      return NextResponse.json(
+        { error: 'Erro ao atualizar saldo' },
         { status: 500 },
       )
     }

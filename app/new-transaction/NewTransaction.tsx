@@ -143,6 +143,7 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
           <option value="PIX">PIX</option>
           <option value="Aplicação">Aplicação</option>
           <option value="Câmbio">Câmbio</option>
+          <option value="Depósito">Depósito</option>
         </select>
         <button
           disabled={!canSubmit}

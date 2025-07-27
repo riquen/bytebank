@@ -1,7 +1,7 @@
 export interface TransactionData {
   transaction_id: string
   amount: string
-  transaction_type: 'PIX' | 'Aplicação' | 'Câmbio'
+  transaction_type: 'PIX' | 'Aplicação' | 'Câmbio' | 'Depósito'
   date: string
 }
 
