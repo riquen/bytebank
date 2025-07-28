@@ -1,7 +1,7 @@
 export interface TransactionData {
   transaction_id: string
-  amount: string
-  transaction_type: 'PIX' | 'Aplicação' | 'Câmbio'
+  amount: number
+  transaction_type: 'PIX' | 'Aplicação' | 'Câmbio' | 'Depósito'
   date: string
 }
 
@@ -11,6 +11,6 @@ export interface GetResponse {
 }
 
 export interface PostRequestBody {
-  amount: string
+  amount: number
   transaction_type: TransactionData['transaction_type']
 }

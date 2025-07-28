@@ -2,10 +2,14 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { useSWRConfig } from 'swr'
+import useSWR, { useSWRConfig } from 'swr'
+import useSWRMutation from 'swr/mutation'
 import { toast } from 'react-toastify'
 import Image from 'next/image'
 import { imageHelper } from '@/utils/image-helper'
+import { formatCurrency } from '@/utils/currency'
+import { fetcher } from '@/utils/fetcher'
+import { useTransactions } from '@/utils/useTransactions'
 import { Loader } from '@/components/Loader'
 import Card from '@/public/static/images/card.png'
 import PixelsLight from '@/public/static/images/pixels-light.png'
@@ -18,98 +22,95 @@ interface NewTransactionProps {
 export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
   const router = useRouter()
   const pathname = usePathname()
-  const { mutate: globalMutate } = useSWRConfig()
-  const isEdit = Boolean(transaction_id)
-  const isHome = pathname === '/'
 
-  const [amount, setAmount] = useState('')
+  const isHome = pathname === '/'
+  const isEdit = Boolean(transaction_id)
+
+  const { mutate: mutateHome } = useSWRConfig()
+  const { mutate: mutateTransactions } = useTransactions()
+
+  const { data: transaction, isLoading: transactionLoading } =
+    useSWR<TransactionData>(
+      transaction_id ? `/api/transactions/${transaction_id}` : null,
+      fetcher,
+    )
+
+  const [amountFormatted, setAmountFormatted] = useState('')
   const [transactionType, setTransactionType] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [loadingTransaction, setLoadingTransaction] = useState(isEdit)
 
   useEffect(() => {
-    if (!isEdit) {
-      setLoadingTransaction(false)
-      return
+    if (!transactionLoading && transaction) {
+      setAmountFormatted(formatCurrency(transaction.amount))
+      setTransactionType(transaction.transaction_type)
     }
+  }, [transactionLoading, transaction])
 
-    const fetchTransaction = async () => {
-      try {
-        const response = await fetch(`/api/transactions/${transaction_id}`)
-
-        if (!response.ok) throw new Error()
-
-        const { amount, transaction_type }: TransactionData =
-          await response.json()
-
-        setAmount(amount)
-        setTransactionType(transaction_type)
-      } catch {
-        toast.error('Erro ao carregar transação')
-      } finally {
-        setLoadingTransaction(false)
-      }
-    }
-
-    fetchTransaction()
-  }, [transaction_id, isEdit])
-
-  const handleSubmit = useCallback(async () => {
-    if (!transactionType || Number(amount.replace(/\D/g, '')) <= 0) return
-    setLoading(true)
-
-    try {
-      const url = isEdit
-        ? `/api/transactions/${transaction_id}`
-        : '/api/transactions'
-      const method = isEdit ? 'PATCH' : 'POST'
-
+  const { trigger: saveTransaction, isMutating: saving } = useSWRMutation<
+    unknown,
+    any,
+    string,
+    { amount: number; transaction_type: string }
+  >(
+    transaction_id
+      ? `/api/transactions/${transaction_id}`
+      : '/api/transactions',
+    async (url, { arg }) => {
       const response = await fetch(url, {
-        method,
+        method: isEdit ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount, transaction_type: transactionType }),
+        body: JSON.stringify(arg),
       })
 
-      if (!response.ok) throw new Error()
+      if (!response.ok) throw new Error('Erro ao salvar')
 
+      return response.json()
+    },
+  )
+
+  const handleSubmit = useCallback(async () => {
+    const raw = amountFormatted.replace(/\D/g, '')
+    const amount = Number(raw) / 100
+    if (amount <= 0 || !transactionType) return
+
+    try {
+      await saveTransaction({ amount, transaction_type: transactionType })
       toast.success(
         `Transação ${isEdit ? 'atualizada' : 'adicionada'} com sucesso!`,
       )
-      setAmount('')
-      setTransactionType('')
 
-      await globalMutate(
-        (key: string) => key.startsWith('/api/transactions'),
-        undefined,
-        { revalidate: true },
-      )
+      await mutateTransactions()
+      mutateHome('/api')
+
+      setAmountFormatted('')
+      setTransactionType('')
 
       if (isEdit) router.back()
     } catch (err) {
       console.error(err)
       toast.error('Erro ao salvar transação')
-    } finally {
-      setLoading(false)
     }
-  }, [amount, transactionType, transaction_id, isEdit, router, globalMutate])
+  }, [
+    amountFormatted,
+    transactionType,
+    isEdit,
+    saveTransaction,
+    mutateTransactions,
+    mutateHome,
+    router,
+  ])
 
-  const handleValueChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const onlyNums = e.target.value.replace(/\D/g, '')
-      const number = Number(onlyNums) / 100
-      const formatted = new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL',
-      }).format(number)
-      setAmount(formatted)
-    },
-    [],
-  )
+  const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const onlyNums = e.target.value.replace(/\D/g, '')
+    const number = Number(onlyNums) / 100
+    setAmountFormatted(formatCurrency(number))
+  }
 
-  if (loadingTransaction) return <Loader />
+  if (transactionLoading) return <Loader />
 
   const canSubmit =
-    !loading && transactionType !== '' && Number(amount.replace(/\D/g, '')) > 0
+    !saving &&
+    transactionType !== '' &&
+    Number(amountFormatted.replace(/\D/g, '')) > 0
 
   return (
     <div
@@ -125,7 +126,7 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
           id="amount"
           type="text"
           inputMode="numeric"
-          value={amount}
+          value={amountFormatted}
           onChange={handleValueChange}
           placeholder="R$ 0,00"
           maxLength={14}
@@ -143,13 +144,14 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
           <option value="PIX">PIX</option>
           <option value="Aplicação">Aplicação</option>
           <option value="Câmbio">Câmbio</option>
+          <option value="Depósito">Depósito</option>
         </select>
         <button
           disabled={!canSubmit}
           onClick={handleSubmit}
           className="py-2 rounded-lg bg-foreground cursor-pointer font-semibold text-white focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed active:opacity-80 hover:opacity-80 transition-opacity"
         >
-          {loading ? <Loader size="sm" color="background" /> : 'Salvar'}
+          {saving ? <Loader size="sm" color="background" /> : 'Salvar'}
         </button>
       </div>
       <Image

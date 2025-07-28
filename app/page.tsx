@@ -1,8 +1,11 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
+import useSWR from 'swr'
 import Image from 'next/image'
 import { imageHelper } from '@/utils/image-helper'
+import { fetcher } from '@/utils/fetcher'
+import { formatCurrency } from '@/utils/currency'
 import { Loader } from '@/components/Loader'
 import Eye from '@/public/static/icons/eye.svg'
 import EyeOff from '@/public/static/icons/eye-off.svg'
@@ -13,30 +16,10 @@ import Statement from './statement/page'
 import { NewTransaction } from './new-transaction/NewTransaction'
 
 export default function Home() {
+  const { data } = useSWR<HomeData>('/api', fetcher)
   const [showBalance, setShowBalance] = useState(true)
-  const [data, setData] = useState<HomeData | null>(null)
 
-  const toggleShowBalance = useCallback(
-    () => setShowBalance((prev) => !prev),
-    [],
-  )
-
-  useEffect(() => {
-    async function load() {
-      try {
-        const response = await fetch('/api')
-
-        if (!response.ok) throw new Error('Erro ao buscar dados')
-
-        const data = await response.json()
-        setData(data)
-      } catch (err) {
-        console.error(err)
-      }
-    }
-
-    load()
-  }, [])
+  const toggleShowBalance = () => setShowBalance((prev) => !prev)
 
   if (!data) return <Loader />
 
@@ -65,7 +48,7 @@ export default function Home() {
               <div className="flex flex-col gap-2">
                 <p>Conta Corrente</p>
                 <h2 className="text-3xl">
-                  {showBalance ? data.balance : '••••••'}
+                  {showBalance ? formatCurrency(data.balance) : '••••••'}
                 </h2>
               </div>
             </div>

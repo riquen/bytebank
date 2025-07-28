@@ -6,31 +6,23 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ transaction_id: string }> },
 ) {
-  try {
-    const { transaction_id } = await params
+  const { transaction_id } = await params
 
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('*')
-      .eq('transaction_id', transaction_id)
-      .single()
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .eq('transaction_id', transaction_id)
+    .single()
 
-    if (error) {
-      console.error(error)
-      return NextResponse.json(
-        { error: 'Transação não encontrada' },
-        { status: 404 },
-      )
-    }
-
-    return NextResponse.json<TransactionData>(data)
-  } catch (err) {
-    console.error(err)
+  if (error) {
+    console.error(error)
     return NextResponse.json(
-      { error: 'Erro ao buscar transação' },
-      { status: 500 },
+      { error: 'Transação não encontrada' },
+      { status: 404 },
     )
   }
+
+  return NextResponse.json<TransactionData>(data)
 }
 
 export async function PATCH(
@@ -41,21 +33,77 @@ export async function PATCH(
     const { transaction_id } = await params
     const { amount, transaction_type }: PostRequestBody = await request.json()
 
-    const updates = { amount, transaction_type }
-
-    const { data, error } = await supabase
+    const { data: oldTransaction, error: errorOldTransaction } = await supabase
       .from('transactions')
-      .update(updates)
+      .select('amount, transaction_type')
+      .eq('transaction_id', transaction_id)
+      .single()
+
+    if (errorOldTransaction || !oldTransaction) {
+      console.error(errorOldTransaction)
+      return NextResponse.json(
+        { error: 'Transação não encontrada' },
+        { status: 404 },
+      )
+    }
+
+    const { data: newTransaction, error: errorNewTransaction } = await supabase
+      .from('transactions')
+      .update({ amount, transaction_type })
       .eq('transaction_id', transaction_id)
       .select('*')
       .single()
 
-    if (error) {
-      console.error(error)
-      return NextResponse.json({ error: 'Erro ao atualizar' }, { status: 500 })
+    if (errorNewTransaction || !newTransaction) {
+      console.error(errorNewTransaction)
+      return NextResponse.json(
+        { error: 'Erro ao atualizar transação' },
+        { status: 404 },
+      )
     }
 
-    return NextResponse.json({ success: true, transaction: data })
+    const { data: user, error: errorUser } = await supabase
+      .from('user')
+      .select('user_id, balance')
+      .single()
+
+    if (errorUser || user === null) {
+      console.error(errorUser)
+      return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
+    }
+
+    const oldOperator = ['PIX', 'Câmbio'].includes(
+      oldTransaction.transaction_type,
+    )
+      ? -1
+      : +1
+
+    const newOperator = ['PIX', 'Câmbio'].includes(
+      newTransaction.transaction_type,
+    )
+      ? -1
+      : +1
+
+    const delta =
+      newOperator * newTransaction.amount - oldOperator * oldTransaction.amount
+
+    const updatedBalance = user.balance + delta
+
+    const { error } = await supabase
+      .from('user')
+      .update({ balance: updatedBalance })
+      .eq('user_id', user.user_id)
+      .single()
+
+    if (error) {
+      console.error(error)
+      return NextResponse.json(
+        { error: 'Erro ao atualizar saldo' },
+        { status: 500 },
+      )
+    }
+
+    return NextResponse.json({ success: true, transaction: newTransaction })
   } catch (err) {
     console.error(err)
     return NextResponse.json(
@@ -72,14 +120,60 @@ export async function DELETE(
   try {
     const { transaction_id } = await params
 
-    const { error } = await supabase
+    const { data: transaction, error: errorTransaction } = await supabase
+      .from('transactions')
+      .select('amount, transaction_type')
+      .eq('transaction_id', transaction_id)
+      .single()
+
+    if (errorTransaction || !transaction) {
+      console.error(errorTransaction)
+      return NextResponse.json(
+        { error: 'Transação não encontrada' },
+        { status: 404 },
+      )
+    }
+
+    const { data: user, error: errorUser } = await supabase
+      .from('user')
+      .select('user_id, balance')
+      .single()
+
+    if (errorUser || user === null) {
+      console.error(errorUser)
+      return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
+    }
+
+    const operator = ['PIX', 'Câmbio'].includes(transaction.transaction_type)
+      ? -1
+      : +1
+    const updatedBalance = user.balance - operator * transaction.amount
+
+    const { error: errorDelete } = await supabase
       .from('transactions')
       .delete()
       .eq('transaction_id', transaction_id)
 
+    if (errorDelete) {
+      console.error(errorDelete)
+      return NextResponse.json(
+        { error: 'Erro ao deletar transação' },
+        { status: 500 },
+      )
+    }
+
+    const { error } = await supabase
+      .from('user')
+      .update({ balance: updatedBalance })
+      .eq('user_id', user.user_id)
+      .single()
+
     if (error) {
       console.error(error)
-      return NextResponse.json({ error: 'Erro ao deletar' }, { status: 500 })
+      return NextResponse.json(
+        { error: 'Erro ao atualizar saldo' },
+        { status: 500 },
+      )
     }
 
     return NextResponse.json({ success: true })

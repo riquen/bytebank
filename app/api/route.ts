@@ -7,14 +7,13 @@ export async function GET() {
     const { data, error } = await supabase
       .from('user')
       .select('name, balance')
-      .limit(1)
       .single()
 
-    if (error) {
+    if (error || !data) {
       console.error(error)
       return NextResponse.json(
-        { error: 'Usuário não encontrado' },
-        { status: 404 },
+        { error: 'Erro ao buscar dados' },
+        { status: 500 },
       )
     }
 
