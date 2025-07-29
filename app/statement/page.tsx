@@ -60,50 +60,56 @@ export default function Statement() {
           </p>
         ) : (
           transactions.map(
-            ({ transaction_id, amount, transaction_type, date }) => (
-              <div
-                key={transaction_id}
-                className="flex items-center justify-between border-b border-moss-green py-2"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center sm:w-full">
-                  <p className="sm:flex-1">{transaction_type}</p>
-                  <p className="sm:flex-1 font-semibold">
-                    {formatCurrency(amount)}
-                  </p>
-                  <p className="sm:flex-1 text-xs text-battleship-gray">
-                    {date}
-                  </p>
+            ({ transaction_id, amount, transaction_type, date }) => {
+              const isOutgoing = ['PIX', 'Câmbio'].includes(transaction_type)
+              const operator = isOutgoing ? '-' : '+'
+              const amountColor = isOutgoing ? 'text-rojo' : 'text-kelly-green'
+
+              return (
+                <div
+                  key={transaction_id}
+                  className="flex items-center justify-between border-b border-foreground py-2"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:w-full">
+                    <p className="sm:flex-1">{transaction_type}</p>
+                    <p className={`sm:flex-1 font-semibold ${amountColor}`}>
+                      {`${operator}${formatCurrency(amount)}`}
+                    </p>
+                    <p className="sm:flex-1 text-xs text-battleship-gray">
+                      {date}
+                    </p>
+                  </div>
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => {
+                        router.push(
+                          `/new-transaction?transaction_id=${transaction_id}`,
+                        )
+                      }}
+                      aria-label="Editar transação"
+                      className="p-px rounded-full cursor-pointer focus:outline-none active:bg-foreground/20 hover:bg-foreground/20 transition-colors"
+                    >
+                      <Image
+                        src={Edit}
+                        alt="Edit"
+                        style={imageHelper.intrinsic}
+                      />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(transaction_id)}
+                      aria-label="Deletar transação"
+                      className="p-px rounded-full cursor-pointer focus:outline-none active:bg-foreground/20 hover:bg-foreground/20 transition-colors"
+                    >
+                      <Image
+                        src={Delete}
+                        alt="Delete"
+                        style={imageHelper.intrinsic}
+                      />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => {
-                      router.push(
-                        `/new-transaction?transaction_id=${transaction_id}`,
-                      )
-                    }}
-                    aria-label="Editar transação"
-                    className="p-px rounded-full cursor-pointer focus:outline-none active:bg-foreground/20 hover:bg-foreground/20 transition-colors"
-                  >
-                    <Image
-                      src={Edit}
-                      alt="Edit"
-                      style={imageHelper.intrinsic}
-                    />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(transaction_id)}
-                    aria-label="Deletar transação"
-                    className="p-px rounded-full cursor-pointer focus:outline-none active:bg-foreground/20 hover:bg-foreground/20 transition-colors"
-                  >
-                    <Image
-                      src={Delete}
-                      alt="Delete"
-                      style={imageHelper.intrinsic}
-                    />
-                  </button>
-                </div>
-              </div>
-            ),
+              )
+            },
           )
         )}
       </div>

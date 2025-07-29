@@ -4,7 +4,6 @@
   --background: #E4EDE3;
   --foreground: #004D61;
   --tomato: #FF5031;
-  --moss-green: #47A138;
   --rojo: #E60026;
   --kelly-green: #38B000;
   --silver: #CBCBCB;
@@ -16,7 +15,8 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-tomato: var(--tomato);
-  --color-moss-green: var(--moss-green);
+  --color-rojo: var(--rojo);
+  --color-kelly-green: var(--kelly-green);
   --color-silver: var(--silver);
   --color-battleship-gray: var(--battleship-gray);
   --color-azure: var(--azure);
