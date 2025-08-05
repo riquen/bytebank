@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { imageHelper } from '@/utils/image-helper'
 import { fetcher } from '@/utils/fetcher'
 import { formatCurrency } from '@/utils/currency'
+import { BalanceChart } from '@/components/BalanceChart'
 import { Loader } from '@/components/Loader'
 import Eye from '@/public/static/icons/eye.svg'
 import EyeOff from '@/public/static/icons/eye-off.svg'
@@ -68,6 +69,7 @@ export default function Home() {
         </div>
         <NewTransaction />
       </div>
+      <BalanceChart balance={data.balance} />
       <Statement />
     </div>
   )
