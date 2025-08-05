@@ -11,7 +11,7 @@ interface BalanceChartProps {
 
 export const BalanceChart = ({ balance }: BalanceChartProps) => {
   const { data } = useSWR<GetResponse>(
-    '/api/transactions?limit=1000&page=1',
+    '/api/transactions?limit=20&page=1',
     fetcher,
   )
 
@@ -35,7 +35,7 @@ export const BalanceChart = ({ balance }: BalanceChartProps) => {
     )
   }
 
-  const transactions = data.transactions
+  const transactions = data.transactions.slice(-20)
 
   const net = transactions.reduce((acc, { amount, transaction_type }) => {
     const operator = ['PIX', 'Câmbio'].includes(transaction_type) ? -1 : 1
@@ -55,17 +55,19 @@ export const BalanceChart = ({ balance }: BalanceChartProps) => {
 
   const maxBalance = Math.max(...points.map((p) => p.balance))
   const minBalance = Math.min(...points.map((p) => p.balance))
-  const minTick = Math.floor(minBalance / 5000) * 5000
-  const maxTick = Math.ceil(maxBalance / 5000) * 5000
+  const minTick = Math.floor(minBalance / 1000) * 1000
+  const maxTick = Math.ceil(maxBalance / 1000) * 1000
   const ticks: number[] = []
-  for (let t = minTick; t <= maxTick; t += 5000) ticks.push(t)
+  for (let t = minTick; t <= maxTick; t += 1000) ticks.push(t)
 
   const range = maxTick - minTick || 1
-  const xStep = points.length > 1 ? 100 / (points.length - 1) : 100
+  const AXIS_PADDING = 15
+  const xStep =
+    points.length > 1 ? (100 - AXIS_PADDING) / (points.length - 1) : 100
 
   const polylinePoints = points
     .map((p, i) => {
-      const x = i * xStep
+      const x = AXIS_PADDING + i * xStep
       const y = ((maxTick - p.balance) / range) * 100
       return `${x},${y}`
     })
@@ -77,14 +79,14 @@ export const BalanceChart = ({ balance }: BalanceChartProps) => {
       <svg
         viewBox="0 0 100 100"
         preserveAspectRatio="none"
-        className="-mx-6 w-[calc(100%+3rem)] h-48 text-tomato overflow-visible"
+        className="-mx-6 w-[calc(100%+3rem)] h-48 text-tomato"
       >
         {ticks.map((t) => {
           const y = ((maxTick - t) / range) * 100
           return (
             <g key={t}>
               <line
-                x1="0"
+                x1={AXIS_PADDING}
                 y1={y}
                 x2="100"
                 y2={y}
@@ -92,7 +94,7 @@ export const BalanceChart = ({ balance }: BalanceChartProps) => {
                 strokeWidth={0.5}
               />
               <text
-                x="-2"
+                x={AXIS_PADDING - 1}
                 y={y}
                 fontSize="3"
                 textAnchor="end"
@@ -107,7 +109,7 @@ export const BalanceChart = ({ balance }: BalanceChartProps) => {
         <polyline
           fill="none"
           stroke="currentColor"
-          strokeWidth={2}
+          strokeWidth={1}
           points={polylinePoints}
         />
       </svg>
