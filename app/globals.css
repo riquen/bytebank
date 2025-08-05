@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
 
 :root {
   --background: #E4EDE3;
@@ -24,5 +25,5 @@
 
 body {
   background: var(--background);
-  font-family: var(--font-inter), sans-serif;
+  font-family: 'Inter', sans-serif;
 }
