@@ -11,7 +11,7 @@ interface BalanceChartProps {
 
 export const BalanceChart = ({ balance }: BalanceChartProps) => {
   const { data } = useSWR<GetResponse>(
-    '/api/transactions?limit=100&page=1',
+    '/api/transactions?limit=20&page=1',
     fetcher,
   )
 
@@ -35,14 +35,16 @@ export const BalanceChart = ({ balance }: BalanceChartProps) => {
     )
   }
 
-  const net = data.transactions.reduce((acc, { amount, transaction_type }) => {
+  const transactions = data.transactions.slice(0, 20)
+
+  const net = transactions.reduce((acc, { amount, transaction_type }) => {
     const operator = ['PIX', 'Câmbio'].includes(transaction_type) ? -1 : 1
     return acc + operator * amount
   }, 0)
 
   let running = balance - net
 
-  const points = data.transactions
+  const points = transactions
     .slice()
     .reverse()
     .map((t) => {
