@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSWRConfig } from 'swr'
 import { useInView } from 'react-intersection-observer'
@@ -17,6 +17,9 @@ export default function Statement() {
   const router = useRouter()
   const { mutate: mutateHome } = useSWRConfig()
 
+  const [typeFilter, setTypeFilter] = useState('')
+  const [periodFilter, setPeriodFilter] = useState('')
+
   const {
     transactions,
     hasMore,
@@ -24,13 +27,20 @@ export default function Statement() {
     setSize,
     mutate: mutateTransactions,
     isValidating,
-  } = useTransactions()
+  } = useTransactions({
+    type: typeFilter || undefined,
+    period: periodFilter ? Number(periodFilter) : undefined,
+  })
 
   const { ref, inView } = useInView({ rootMargin: '200px' })
 
   useEffect(() => {
     if (inView && hasMore && !isValidating) setSize(size + 1)
   }, [inView, hasMore, isValidating, size, setSize])
+
+  useEffect(() => {
+    setSize(1)
+  }, [typeFilter, periodFilter, setSize])
 
   const handleDelete = async (transaction_id: string) => {
     try {
@@ -53,6 +63,29 @@ export default function Statement() {
   return (
     <div className="flex flex-col gap-4 p-6 bg-white rounded-lg shadow-md">
       <h2 className="font-bold text-2xl">Extrato</h2>
+      <div className="flex flex-col sm:flex-row gap-4">
+        <select
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+          className="py-2 pl-3 bg-white border border-foreground rounded-lg text-foreground appearance-none bg-[url('/static/icons/arrow-down.svg')] bg-no-repeat bg-right focus:outline-none focus:ring-2 focus:ring-tomato focus:border-transparent transition"
+        >
+          <option value="">Todos os tipos</option>
+          <option value="PIX">PIX</option>
+          <option value="Aplicação">Aplicação</option>
+          <option value="Câmbio">Câmbio</option>
+          <option value="Depósito">Depósito</option>
+        </select>
+        <select
+          value={periodFilter}
+          onChange={(e) => setPeriodFilter(e.target.value)}
+          className="py-2 pl-3 bg-white border border-foreground rounded-lg text-foreground appearance-none bg-[url('/static/icons/arrow-down.svg')] bg-no-repeat bg-right focus:outline-none focus:ring-2 focus:ring-tomato focus:border-transparent transition"
+        >
+          <option value="">Todo o período</option>
+          <option value="7">Últimos 7 dias</option>
+          <option value="15">Últimos 15 dias</option>
+          <option value="30">Últimos 30 dias</option>
+        </select>
+      </div>
       <div className="flex flex-col gap-4">
         {transactions.length === 0 ? (
           <p className="text-center text-sm text-battleship-gray">

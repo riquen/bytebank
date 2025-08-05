@@ -9,9 +9,25 @@ export async function GET(request: NextRequest) {
   const from = (page - 1) * limit
   const to = from + limit - 1
 
-  const { data, error, count } = await supabase
-    .from('transactions')
-    .select('*', { count: 'exact' })
+  const type = url.searchParams.get('type')
+  const period = url.searchParams.get('period')
+
+  let query = supabase.from('transactions').select('*', { count: 'exact' })
+
+  if (type) {
+    query = query.eq('transaction_type', type)
+  }
+
+  if (period) {
+    const days = parseInt(period, 10)
+    if (!Number.isNaN(days)) {
+      const date = new Date()
+      date.setDate(date.getDate() - days)
+      query = query.gte('created_at', date.toISOString())
+    }
+  }
+
+  const { data, error, count } = await query
     .order('created_at', { ascending: false })
     .range(from, to)
 
