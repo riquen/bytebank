@@ -18,7 +18,7 @@ export const BalanceChart = ({ balance }: BalanceChartProps) => {
   if (!data) {
     return (
       <div className="flex flex-col gap-4 p-6 bg-white rounded-lg shadow-md">
-        <h2 className="font-bold text-2xl">Desempenho Financeiro</h2>
+        <h2 className="font-bold text-lg">Desempenho Financeiro</h2>
         <Loader size="sm" />
       </div>
     )
@@ -27,7 +27,7 @@ export const BalanceChart = ({ balance }: BalanceChartProps) => {
   if (data.transactions.length === 0) {
     return (
       <div className="flex flex-col gap-4 p-6 bg-white rounded-lg shadow-md">
-        <h2 className="font-bold text-2xl">Desempenho Financeiro</h2>
+        <h2 className="font-bold text-lg">Desempenho Financeiro</h2>
         <p className="text-sm text-battleship-gray text-center">
           — Sem transações —
         </p>
@@ -75,7 +75,7 @@ export const BalanceChart = ({ balance }: BalanceChartProps) => {
 
   return (
     <div className="w-full flex flex-col gap-4 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="font-bold text-2xl">Desempenho Financeiro</h2>
+      <h2 className="font-bold text-lg">Desempenho Financeiro</h2>
       <svg
         viewBox="0 0 100 100"
         preserveAspectRatio="none"
@@ -96,7 +96,7 @@ export const BalanceChart = ({ balance }: BalanceChartProps) => {
               <text
                 x={AXIS_PADDING - 1}
                 y={y}
-                fontSize="3"
+                fontSize="2"
                 textAnchor="end"
                 alignmentBaseline="middle"
                 fill="#6b7280"
@@ -109,7 +109,7 @@ export const BalanceChart = ({ balance }: BalanceChartProps) => {
         <polyline
           fill="none"
           stroke="currentColor"
-          strokeWidth={1}
+          strokeWidth={0.5}
           points={polylinePoints}
         />
       </svg>
