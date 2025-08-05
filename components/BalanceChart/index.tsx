@@ -50,26 +50,59 @@ export const BalanceChart = ({ balance }: BalanceChartProps) => {
     .map((t) => {
       const operator = ['PIX', 'Câmbio'].includes(t.transaction_type) ? -1 : 1
       running += operator * t.amount
-      return { date: t.date, balance: running }
+      return { balance: running }
     })
 
   const maxBalance = Math.max(...points.map((p) => p.balance))
   const minBalance = Math.min(...points.map((p) => p.balance))
+  const minTick = Math.floor(minBalance / 1000) * 1000
+  const maxTick = Math.ceil(maxBalance / 1000) * 1000
+  const ticks: number[] = []
+  for (let t = minTick; t <= maxTick; t += 1000) ticks.push(t)
+
+  const range = maxTick - minTick || 1
   const xStep = points.length > 1 ? 100 / (points.length - 1) : 100
 
   const polylinePoints = points
     .map((p, i) => {
       const x = i * xStep
-      const range = maxBalance - minBalance || 1
-      const y = ((maxBalance - p.balance) / range) * 100
+      const y = ((maxTick - p.balance) / range) * 100
       return `${x},${y}`
     })
     .join(' ')
 
   return (
-    <div className="flex flex-col gap-4 p-6 bg-white rounded-lg shadow-md">
+    <div className="w-full flex flex-col gap-4 p-6 bg-white rounded-lg shadow-md">
       <h2 className="font-bold text-2xl">Desempenho Financeiro</h2>
-      <svg viewBox="0 0 100 100" className="w-full h-48 text-tomato">
+      <svg
+        viewBox="0 0 100 100"
+        className="w-full h-48 text-tomato overflow-visible"
+      >
+        {ticks.map((t) => {
+          const y = ((maxTick - t) / range) * 100
+          return (
+            <g key={t}>
+              <line
+                x1="0"
+                y1={y}
+                x2="100"
+                y2={y}
+                stroke="#e5e5e5"
+                strokeWidth={0.5}
+              />
+              <text
+                x="-2"
+                y={y}
+                fontSize="3"
+                textAnchor="end"
+                alignmentBaseline="middle"
+                fill="#6b7280"
+              >
+                {t}
+              </text>
+            </g>
+          )
+        })}
         <polyline
           fill="none"
           stroke="currentColor"
@@ -77,11 +110,6 @@ export const BalanceChart = ({ balance }: BalanceChartProps) => {
           points={polylinePoints}
         />
       </svg>
-      <div className="flex justify-between text-xs">
-        {points.map((p) => (
-          <span key={p.date}>{p.date}</span>
-        ))}
-      </div>
     </div>
   )
 }
