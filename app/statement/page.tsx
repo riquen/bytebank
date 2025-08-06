@@ -12,12 +12,15 @@ import { useTransactions } from '@/utils/useTransactions'
 import Edit from '@/public/static/icons/edit.svg'
 import Delete from '@/public/static/icons/delete.svg'
 import { Loader } from '@/components/Loader'
+import type { TransactionData } from '@/app/api/transactions/types'
 
 export default function Statement() {
   const router = useRouter()
   const { mutate: mutateHome } = useSWRConfig()
 
-  const [typeFilter, setTypeFilter] = useState('')
+  const [typeFilter, setTypeFilter] = useState<
+    TransactionData['transaction_type'] | ''
+  >('')
   const [periodFilter, setPeriodFilter] = useState('')
 
   const {
@@ -28,7 +31,7 @@ export default function Statement() {
     mutate: mutateTransactions,
     isValidating,
   } = useTransactions({
-    type: typeFilter || undefined,
+    type: typeFilter === '' ? undefined : typeFilter,
     period: periodFilter ? Number(periodFilter) : undefined,
   })
 
