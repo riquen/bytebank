@@ -35,12 +35,14 @@ export default function Home() {
               <div className="flex gap-6">
                 <h3 className="font-semibold text-xl">Saldo</h3>
                 <button
+                  aria-label={showBalance ? 'Ocultar saldo' : 'Mostrar saldo'}
                   className="px-1 rounded-full cursor-pointer focus:outline-none active:bg-background/10 hover:bg-background/10 transition-colors"
                   onClick={toggleShowBalance}
                 >
                   <Image
                     src={showBalance ? Eye : EyeOff}
-                    alt={showBalance ? 'EyeOff' : 'Eye'}
+                    alt=""
+                    aria-hidden="true"
                     style={imageHelper.intrinsic}
                   />
                 </button>
