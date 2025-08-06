@@ -122,6 +122,9 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
         <h2 className="font-bold text-2xl text-foreground">
           {isEdit ? 'Editar transação' : 'Nova transação'}
         </h2>
+        <label htmlFor="amount" className="sr-only">
+          Valor
+        </label>
         <input
           id="amount"
           type="text"
@@ -132,6 +135,9 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
           maxLength={14}
           className="py-2 bg-white border border-foreground rounded-lg text-center text-foreground focus:outline-none focus:ring-2 focus:ring-tomato focus:border-transparent transition"
         />
+        <label htmlFor="transactionType" className="sr-only">
+          Tipo de transação
+        </label>
         <select
           id="transactionType"
           value={transactionType}

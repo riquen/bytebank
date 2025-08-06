@@ -80,6 +80,8 @@ export const BalanceChart = ({ balance }: BalanceChartProps) => {
         viewBox="0 0 100 100"
         preserveAspectRatio="none"
         className="-mx-6 w-[calc(100%+3rem)] h-48 text-tomato"
+        role="img"
+        aria-label="Gráfico do desempenho financeiro"
       >
         {ticks.map((t) => {
           const y = ((maxTick - t) / range) * 100
