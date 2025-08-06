@@ -69,7 +69,11 @@ export default function Statement() {
       <div className="flex flex-col sm:flex-row gap-4">
         <select
           value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
+          onChange={(e) =>
+            setTypeFilter(
+              e.target.value as TransactionData['transaction_type'] | '',
+            )
+          }
           className="py-2 pl-3 bg-white border border-foreground rounded-lg text-foreground appearance-none bg-[url('/static/icons/arrow-down.svg')] bg-no-repeat bg-right focus:outline-none focus:ring-2 focus:ring-tomato focus:border-transparent transition"
         >
           <option value="">Todos os tipos</option>
