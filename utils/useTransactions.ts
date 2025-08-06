@@ -3,18 +3,30 @@ import { fetcher } from '@/utils/fetcher'
 import type { GetResponse, TransactionData } from '@/app/api/transactions/types'
 
 export const LIMIT = 5
-const getKey = (pageIndex: number, previousPage: GetResponse | null) => {
-  if (previousPage && !previousPage.hasMore) return null
 
-  const params = new URLSearchParams({
-    limit: LIMIT.toString(),
-    page: (pageIndex + 1).toString(),
-  })
-
-  return `/api/transactions?${params.toString()}`
+interface TransactionsFilters {
+  type?: TransactionData['transaction_type']
+  period?: number
 }
 
-export function useTransactions() {
+export function useTransactions(filters: TransactionsFilters = {}) {
+  const getKey = (
+    pageIndex: number,
+    previousPage: GetResponse | null,
+  ): string | null => {
+    if (previousPage && !previousPage.hasMore) return null
+
+    const params = new URLSearchParams({
+      limit: LIMIT.toString(),
+      page: (pageIndex + 1).toString(),
+    })
+
+    if (filters.type) params.set('type', filters.type)
+    if (filters.period) params.set('period', filters.period.toString())
+
+    return `/api/transactions?${params.toString()}`
+  }
+
   const { data, error, size, setSize, mutate, isValidating } =
     useSWRInfinite<GetResponse>(getKey, fetcher, {
       revalidateFirstPage: false,
