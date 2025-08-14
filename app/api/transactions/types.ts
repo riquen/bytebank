@@ -1,8 +1,8 @@
 export interface TransactionData {
   transaction_id: string
+  created_at: string
   amount: number
   transaction_type: 'PIX' | 'Aplicação' | 'Câmbio' | 'Depósito'
-  date: string
 }
 
 export interface GetResponse {

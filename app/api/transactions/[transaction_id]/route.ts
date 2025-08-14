@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import type { PostRequestBody, TransactionData } from '../types'
+import { signedAmount } from '@/utils/signed-amount'
 
 export async function GET(
   _request: NextRequest,
@@ -72,22 +73,9 @@ export async function PATCH(
       return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
     }
 
-    const oldOperator = ['PIX', 'Câmbio'].includes(
-      oldTransaction.transaction_type,
-    )
-      ? -1
-      : +1
-
-    const newOperator = ['PIX', 'Câmbio'].includes(
-      newTransaction.transaction_type,
-    )
-      ? -1
-      : +1
-
-    const delta =
-      newOperator * newTransaction.amount - oldOperator * oldTransaction.amount
-
-    const updatedBalance = user.balance + delta
+    const updatedBalance =
+      user.balance +
+      signedAmount(newTransaction.transaction_type, newTransaction.amount)
 
     const { error } = await supabase
       .from('user')
@@ -144,10 +132,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
     }
 
-    const operator = ['PIX', 'Câmbio'].includes(transaction.transaction_type)
-      ? -1
-      : +1
-    const updatedBalance = user.balance - operator * transaction.amount
+    const updatedBalance =
+      user.balance -
+      signedAmount(transaction.transaction_type, transaction.amount)
 
     const { error: errorDelete } = await supabase
       .from('transactions')

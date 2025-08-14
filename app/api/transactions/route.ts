@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import type { GetResponse, PostRequestBody } from './types'
+import { signedAmount } from '@/utils/signed-amount'
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url)
@@ -41,13 +42,7 @@ export async function POST(request: NextRequest) {
 
     const { data: transaction, error: errorTransaction } = await supabase
       .from('transactions')
-      .insert([
-        {
-          amount,
-          transaction_type,
-          date: new Date().toLocaleDateString('pt-BR'),
-        },
-      ])
+      .insert([{ amount, transaction_type }])
       .select('*')
       .single()
 
@@ -69,10 +64,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
     }
 
-    const operator = ['PIX', 'Câmbio'].includes(transaction.transaction_type)
-      ? -1
-      : +1
-    const newBalance = user.balance + operator * transaction.amount
+    const newBalance =
+      user.balance +
+      signedAmount(transaction.transaction_type, transaction.amount)
 
     const { error } = await supabase
       .from('user')
@@ -88,11 +82,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({
-      status: 201,
-      success: true,
-      transaction,
-    })
+    return NextResponse.json({ success: true, transaction }, { status: 201 })
   } catch (err) {
     console.error(err)
     return NextResponse.json(

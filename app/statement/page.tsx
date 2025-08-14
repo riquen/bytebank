@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useSWRConfig } from 'swr'
 import { useInView } from 'react-intersection-observer'
 import { toast } from 'react-toastify'
@@ -9,12 +9,17 @@ import Image from 'next/image'
 import { imageHelper } from '@/utils/image-helper'
 import { formatCurrency } from '@/utils/currency'
 import { useTransactions } from '@/utils/useTransactions'
+import { isOutgoing } from '@/utils/signed-amount'
 import Edit from '@/public/static/icons/edit.svg'
 import Delete from '@/public/static/icons/delete.svg'
 import { Loader } from '@/components/Loader'
+import { formatBRDateFromISO } from '@/utils/date'
 
 export default function Statement() {
   const router = useRouter()
+  const pathname = usePathname()
+  const isHome = pathname === '/'
+
   const { mutate: mutateHome } = useSWRConfig()
 
   const {
@@ -29,8 +34,9 @@ export default function Statement() {
   const { ref, inView } = useInView({ rootMargin: '200px' })
 
   useEffect(() => {
+    if (isHome) return
     if (inView && hasMore && !isValidating) setSize(size + 1)
-  }, [inView, hasMore, isValidating, size, setSize])
+  }, [isHome, inView, hasMore, isValidating, size, setSize])
 
   const handleDelete = async (transaction_id: string) => {
     try {
@@ -50,20 +56,22 @@ export default function Statement() {
 
   if (!transactions) return <Loader />
 
+  const transactionsList = isHome ? transactions.slice(0, 5) : transactions
+
   return (
     <div className="flex flex-col gap-4 p-6 bg-white rounded-lg shadow-md">
       <h2 className="font-bold text-2xl">Extrato</h2>
       <div className="flex flex-col gap-4">
-        {transactions.length === 0 ? (
+        {transactionsList.length === 0 ? (
           <p className="text-center text-sm text-battleship-gray">
             — Você ainda não possui transações —
           </p>
         ) : (
-          transactions.map(
-            ({ transaction_id, amount, transaction_type, date }) => {
-              const isOutgoing = ['PIX', 'Câmbio'].includes(transaction_type)
-              const operator = isOutgoing ? '-' : '+'
-              const amountColor = isOutgoing ? 'text-rojo' : 'text-kelly-green'
+          transactionsList.map(
+            ({ transaction_id, created_at, amount, transaction_type }) => {
+              const isOutflow = isOutgoing(transaction_type)
+              const operator = isOutflow ? '-' : '+'
+              const amountColor = isOutflow ? 'text-rojo' : 'text-kelly-green'
 
               return (
                 <div
@@ -76,7 +84,7 @@ export default function Statement() {
                       {`${operator}${formatCurrency(amount)}`}
                     </p>
                     <p className="sm:flex-1 text-xs text-battleship-gray">
-                      {date}
+                      {formatBRDateFromISO(created_at)}
                     </p>
                   </div>
                   <div className="flex gap-4">
@@ -113,12 +121,12 @@ export default function Statement() {
           )
         )}
       </div>
-      {!hasMore && transactions.length > 0 && (
+      {!isHome && !hasMore && transactions.length > 0 && (
         <p className="text-center text-sm text-battleship-gray">
           — Fim do extrato —
         </p>
       )}
-      <div ref={ref} />
+      {!isHome && <div ref={ref} />}
     </div>
   )
 }

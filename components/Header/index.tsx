@@ -7,10 +7,11 @@ import Image from 'next/image'
 import { imageHelper } from '@/utils/image-helper'
 import Avatar from '@/public/static/icons/avatar.svg'
 
-interface NavItem {
-  label: string
-  href: string
-}
+const NAV_ITEMS = [
+  { label: 'Início', href: '/' },
+  { label: 'Extrato', href: '/statement' },
+  { label: 'Nova Transação', href: '/new-transaction' },
+] as const
 
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -18,12 +19,6 @@ export const Header = () => {
   const pathname = usePathname()
 
   const toggleMenu = useCallback(() => setIsOpen((prev) => !prev), [])
-
-  const navItems: NavItem[] = [
-    { label: 'Início', href: '/' },
-    { label: 'Extrato', href: '/statement' },
-    { label: 'Nova Transação', href: '/new-transaction' },
-  ]
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -67,7 +62,7 @@ export const Header = () => {
         <div
           className={`${isOpen ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0'} absolute z-20 flex flex-col right-0 mt-2 mr-2 rounded-md bg-background shadow-md text-center transition-all duration-300 ease-in-out transform origin-top`}
         >
-          {navItems.map(({ label, href }) => {
+          {NAV_ITEMS.map(({ label, href }) => {
             const isActive = pathname === href
 
             return (
@@ -83,7 +78,7 @@ export const Header = () => {
         </div>
       </div>
       <nav className="hidden sm:flex gap-4">
-        {navItems.map(({ label, href }) => {
+        {NAV_ITEMS.map(({ label, href }) => {
           const isActive = pathname === href
 
           return (
