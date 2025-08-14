@@ -1,8 +1,9 @@
 export interface TransactionData {
   transaction_id: string
+  profile_id: string
   created_at: string
   amount: number
-  transaction_type: 'PIX' | 'Aplicação' | 'Câmbio' | 'Depósito'
+  transaction_type: string
 }
 
 export interface GetResponse {
@@ -12,5 +13,5 @@ export interface GetResponse {
 
 export interface PostRequestBody {
   amount: number
-  transaction_type: TransactionData['transaction_type']
+  transaction_type: string
 }

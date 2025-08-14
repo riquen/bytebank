@@ -9,11 +9,11 @@ import Image from 'next/image'
 import { imageHelper } from '@/utils/image-helper'
 import { formatCurrency } from '@/utils/currency'
 import { useTransactions } from '@/utils/useTransactions'
-import { isOutgoing } from '@/utils/signed-amount'
 import Edit from '@/public/static/icons/edit.svg'
 import Delete from '@/public/static/icons/delete.svg'
 import { Loader } from '@/components/Loader'
 import { formatBRDateFromISO } from '@/utils/date'
+import { useTransactionKinds } from '@/utils/useTransactionKinds'
 
 export default function Statement() {
   const router = useRouter()
@@ -30,6 +30,9 @@ export default function Statement() {
     mutate: mutateTransactions,
     isValidating,
   } = useTransactions()
+
+  const { kinds } = useTransactionKinds()
+  const flowMap = new Map(kinds.map((kind) => [kind.code, kind.direction]))
 
   const { ref, inView } = useInView({ rootMargin: '200px' })
 
@@ -69,7 +72,7 @@ export default function Statement() {
         ) : (
           transactionsList.map(
             ({ transaction_id, created_at, amount, transaction_type }) => {
-              const isOutflow = isOutgoing(transaction_type)
+              const isOutflow = flowMap.get(transaction_type) === 'outflow'
               const operator = isOutflow ? '-' : '+'
               const amountColor = isOutflow ? 'text-rojo' : 'text-kelly-green'
 
