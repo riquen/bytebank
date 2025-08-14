@@ -10,6 +10,7 @@ import { imageHelper } from '@/utils/image-helper'
 import { formatCurrency } from '@/utils/currency'
 import { fetcher } from '@/utils/fetcher'
 import { useTransactions } from '@/utils/useTransactions'
+import { useTransactionKinds } from '@/utils/useTransactionKinds'
 import { Loader } from '@/components/Loader'
 import Card from '@/public/static/images/card.png'
 import PixelsLight from '@/public/static/images/pixels-light.png'
@@ -35,10 +36,10 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
       fetcher,
     )
 
+  const { kinds, isLoading: loadingKinds } = useTransactionKinds()
+
   const [amountFormatted, setAmountFormatted] = useState('')
-  const [transactionType, setTransactionType] = useState<
-    TransactionData['transaction_type'] | ''
-  >('')
+  const [transactionType, setTransactionType] = useState('')
 
   useEffect(() => {
     if (!transactionLoading && transaction) {
@@ -87,8 +88,7 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
       setTransactionType('')
 
       if (isEdit) router.back()
-    } catch (err) {
-      console.error(err)
+    } catch {
       toast.error('Erro ao salvar transação')
     }
   }, [
@@ -137,20 +137,18 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
         <select
           id="transactionType"
           value={transactionType}
-          onChange={(e) =>
-            setTransactionType(
-              e.target.value as TransactionData['transaction_type'],
-            )
-          }
+          onChange={(e) => setTransactionType(e.target.value)}
           className="py-2 pl-3 bg-white border border-foreground rounded-lg text-foreground appearance-none bg-[url('/static/icons/arrow-down.svg')] bg-no-repeat bg-right focus:outline-none focus:ring-2 focus:ring-tomato focus:border-transparent transition"
+          disabled={loadingKinds}
         >
           <option value="" disabled>
             Selecione o tipo de transação
           </option>
-          <option value="PIX">PIX</option>
-          <option value="Aplicação">Aplicação</option>
-          <option value="Câmbio">Câmbio</option>
-          <option value="Depósito">Depósito</option>
+          {kinds.map((kind) => (
+            <option key={kind.code} value={kind.code}>
+              {kind.label}
+            </option>
+          ))}
         </select>
         <button
           disabled={!canSubmit}
