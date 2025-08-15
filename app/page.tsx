@@ -16,7 +16,7 @@ import Statement from './statement/page'
 import { NewTransaction } from './new-transaction/NewTransaction'
 
 export default function Home() {
-  const { data } = useSWR<HomeData>('/api', fetcher)
+  const { data, isValidating } = useSWR<HomeData>('/api', fetcher)
   const [showBalance, setShowBalance] = useState(true)
 
   const toggleShowBalance = () => setShowBalance((prev) => !prev)
@@ -47,9 +47,13 @@ export default function Home() {
               <hr className="h-0.5 bg-white" />
               <div className="flex flex-col gap-2">
                 <p>Conta Corrente</p>
-                <h2 className="text-3xl">
-                  {showBalance ? formatCurrency(data.balance) : '••••••'}
-                </h2>
+                {isValidating ? (
+                  <Loader size="sm" color="background" start />
+                ) : (
+                  <h2 className="text-3xl">
+                    {showBalance ? formatCurrency(data.balance) : '••••••'}
+                  </h2>
+                )}
               </div>
             </div>
           </div>

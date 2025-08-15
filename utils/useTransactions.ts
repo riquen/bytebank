@@ -15,10 +15,11 @@ const getKey = (pageIndex: number, previousPage: GetResponse | null) => {
 }
 
 export function useTransactions() {
-  const { data, error, size, setSize, mutate, isValidating } =
-    useSWRInfinite<GetResponse>(getKey, fetcher, {
-      revalidateFirstPage: false,
-    })
+  const { data, setSize, mutate, isValidating } = useSWRInfinite<GetResponse>(
+    getKey,
+    fetcher,
+    { revalidateFirstPage: false },
+  )
 
   const transactions: TransactionData[] =
     data?.flatMap((page) => page.transactions) ?? []
@@ -26,8 +27,6 @@ export function useTransactions() {
 
   return {
     transactions,
-    error,
-    size,
     setSize,
     hasMore,
     mutate,
