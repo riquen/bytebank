@@ -25,13 +25,11 @@ git clone https://github.com/riquen/bytebank.git
 npm install
 ```
 
-### 3. Configure as variáveis de ambiente
-```env
-NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzY2pwbG5wcnZodmJ4dXZ5ZGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyOTc2NzQsImV4cCI6MjA2Mzg3MzY3NH0.H_Hc3mjveRhDtI2MCAu-RjKJTLv7yV1_EiAWSRh3kzk"
-NEXT_PUBLIC_SUPABASE_URL="https://lscjplnprvhvbxuvydla.supabase.co"
-```
-
-### 4. Execute a aplicação em ambiente de desenvolvimento
+### 3. Execute a aplicação em ambiente de desenvolvimento
 ```bash
 npm run dev
 ```
+
+### 4. Realize o login
+**E-mail**: henri@bytebank.local
+**Senha**: bytebanklocal
