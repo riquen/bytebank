@@ -1,11 +1,12 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { imageHelper } from '@/utils/image-helper'
 import Avatar from '@/public/static/icons/avatar.svg'
+import { supabaseClient } from '@/lib/supabase'
 
 const NAV_ITEMS = [
   { label: 'Início', href: '/' },
@@ -17,8 +18,17 @@ export const Header = () => {
   const [isOpen, setIsOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
+  const router = useRouter()
+  const supabase = supabaseClient()
 
   const toggleMenu = useCallback(() => setIsOpen((prev) => !prev), [])
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+
+    router.replace('/login')
+    router.refresh()
+  }
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -36,9 +46,7 @@ export const Header = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [isOpen])
 
-  useEffect(() => {
-    setIsOpen(false)
-  }, [pathname])
+  useEffect(() => setIsOpen(false), [pathname])
 
   return (
     <header className="sticky top-0 z-20 flex justify-between items-center p-6 bg-foreground">
@@ -75,6 +83,12 @@ export const Header = () => {
               </Link>
             )
           })}
+          <button
+            onClick={handleLogout}
+            className="px-8 py-2 focus:outline-none active:text-tomato/50 transition-colors"
+          >
+            Sair
+          </button>
         </div>
       </div>
       <nav className="hidden sm:flex gap-4">
@@ -91,6 +105,12 @@ export const Header = () => {
             </Link>
           )
         })}
+        <button
+          onClick={handleLogout}
+          className="px-4 py-2 focus:outline-none text-white cursor-pointer active:text-tomato/80 hover:text-tomato/80 transition-colors"
+        >
+          Sair
+        </button>
       </nav>
     </header>
   )
