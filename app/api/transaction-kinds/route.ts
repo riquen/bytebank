@@ -1,12 +1,8 @@
 import { NextResponse } from 'next/server'
-import { requireUser } from '@/utils/require-user'
+import { requireSession } from '@/utils/require-session'
 
 export async function GET() {
-  const { supabase, user } = await requireUser()
-
-  if (!user) {
-    return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
-  }
+  const { supabase } = await requireSession()
 
   const { data, error } = await supabase
     .from('transaction_kinds')

@@ -1,16 +1,12 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { requireUser } from '@/utils/require-user'
+import { requireSession } from '@/utils/require-session'
 import type { PostRequestBody, TransactionData } from '../types'
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ transaction_id: string }> },
 ) {
-  const { supabase, user } = await requireUser()
-
-  if (!user) {
-    return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
-  }
+  const { supabase, user } = await requireSession()
 
   const { transaction_id } = await params
 
@@ -18,7 +14,7 @@ export async function GET(
     .from('transactions')
     .select('*')
     .eq('transaction_id', transaction_id)
-    .eq('profile_id', user.id)
+    .eq('profile_id', user?.id)
     .single()
 
   if (error || !data) {
@@ -36,11 +32,7 @@ export async function PATCH(
   { params }: { params: Promise<{ transaction_id: string }> },
 ) {
   try {
-    const { supabase, user } = await requireUser()
-
-    if (!user) {
-      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
-    }
+    const { supabase, user } = await requireSession()
 
     const { transaction_id } = await params
     const { amount, transaction_type }: PostRequestBody = await request.json()
@@ -64,7 +56,7 @@ export async function PATCH(
       .from('transactions')
       .update({ amount, transaction_type })
       .eq('transaction_id', transaction_id)
-      .eq('profile_id', user.id)
+      .eq('profile_id', user?.id)
       .select('*')
       .single()
 
@@ -89,11 +81,7 @@ export async function DELETE(
   { params }: { params: Promise<{ transaction_id: string }> },
 ) {
   try {
-    const { supabase, user } = await requireUser()
-
-    if (!user) {
-      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
-    }
+    const { supabase, user } = await requireSession()
 
     const { transaction_id } = await params
 
@@ -101,7 +89,7 @@ export async function DELETE(
       .from('transactions')
       .delete()
       .eq('transaction_id', transaction_id)
-      .eq('profile_id', user.id)
+      .eq('profile_id', user?.id)
 
     if (error) {
       return NextResponse.json(

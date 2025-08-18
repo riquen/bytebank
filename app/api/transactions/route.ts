@@ -1,13 +1,9 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { requireUser } from '@/utils/require-user'
+import { requireSession } from '@/utils/require-session'
 import type { GetResponse, PostRequestBody } from './types'
 
 export async function GET(request: NextRequest) {
-  const { supabase, user } = await requireUser()
-
-  if (!user) {
-    return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
-  }
+  const { supabase, user } = await requireSession()
 
   const url = new URL(request.url)
   const page = parseInt(url.searchParams.get('page') ?? '1', 10)
@@ -18,7 +14,7 @@ export async function GET(request: NextRequest) {
   const { data, error, count } = await supabase
     .from('transactions')
     .select('*', { count: 'exact' })
-    .eq('profile_id', user.id)
+    .eq('profile_id', user?.id)
     .order('created_at', { ascending: false })
     .range(from, to)
 
@@ -36,11 +32,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { supabase, user } = await requireUser()
-
-    if (!user) {
-      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
-    }
+    const { supabase, user } = await requireSession()
 
     const { amount, transaction_type }: PostRequestBody = await request.json()
 
@@ -66,7 +58,7 @@ export async function POST(request: NextRequest) {
 
     const { data: transaction, error } = await supabase
       .from('transactions')
-      .insert([{ amount, transaction_type, profile_id: user.id }])
+      .insert([{ amount, transaction_type, profile_id: user?.id }])
       .select('*')
       .single()
 

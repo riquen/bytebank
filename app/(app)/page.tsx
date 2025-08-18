@@ -11,7 +11,7 @@ import Eye from '@/public/static/icons/eye.svg'
 import EyeOff from '@/public/static/icons/eye-off.svg'
 import Pig from '@/public/static/images/pig.png'
 import PixelsDark from '@/public/static/images/pixels-dark.png'
-import { type HomeData } from './api/types'
+import { type HomeData } from '../api/types'
 import Statement from './statement/page'
 import { NewTransaction } from './new-transaction/NewTransaction'
 
