@@ -14,6 +14,7 @@ import Delete from '@/public/static/icons/delete.svg'
 import { Loader } from '@/components/Loader'
 import { formatBRDateFromISO } from '@/utils/date'
 import { useTransactionKinds } from '@/utils/useTransactionKinds'
+import { type TransactionsFilters } from '@/app/api/transactions/types'
 
 export default function Statement() {
   const router = useRouter()
@@ -23,15 +24,26 @@ export default function Statement() {
   const { mutate: mutateHome } = useSWRConfig()
   const { ref, inView } = useInView({ rootMargin: '200px' })
 
+  const [period, setPeriod] = useState<'' | '7' | '15' | '30'>('')
+  const [transactionTypeFilter, setTransactionTypeFilter] = useState<string>('')
+
+  const filters: TransactionsFilters = useMemo(
+    () => ({
+      period: period ? (Number(period) as 7 | 15 | 30) : undefined,
+      transactionType: transactionTypeFilter || undefined,
+    }),
+    [period, transactionTypeFilter],
+  )
+
   const {
     transactions,
     hasMore,
     setSize,
     mutate: mutateTransactions,
     isValidating,
-  } = useTransactions()
+  } = useTransactions(isHome ? {} : filters)
 
-  const { kinds } = useTransactionKinds()
+  const { kinds, isLoading: loadingKinds } = useTransactionKinds()
   const flowMap = useMemo(
     () => new Map(kinds.map((kind) => [kind.code, kind.direction])),
     [kinds],
@@ -70,9 +82,47 @@ export default function Statement() {
     if (inView && hasMore && !isValidating) setSize((prevSize) => prevSize + 1)
   }, [isHome, inView, hasMore, isValidating, setSize])
 
+  useEffect(() => {
+    if (isHome) return
+    setSize(1)
+  }, [period, transactionTypeFilter, isHome, setSize])
+
   return (
     <div className="flex flex-col gap-4 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="font-bold text-2xl">Extrato</h2>
+      <div className="flex flex-col sm:flex-row justify-between gap-4">
+        <h2 className="font-bold text-2xl">Extrato</h2>
+        {!isHome && (
+          <div className="flex flex-col sm:flex-row gap-4">
+            <select
+              id="period"
+              value={period}
+              onChange={(e) =>
+                setPeriod(e.target.value as '' | '7' | '15' | '30')
+              }
+              className="py-2 pl-3 pr-6 bg-white border border-foreground rounded-lg text-foreground appearance-none bg-[url('/static/icons/arrow-down.svg')] bg-no-repeat bg-right focus:outline-none focus:ring-2 focus:ring-tomato focus:border-transparent transition"
+            >
+              <option value="">Todos os períodos</option>
+              <option value="7">Últimos 7 dias</option>
+              <option value="15">Últimos 15 dias</option>
+              <option value="30">Últimos 30 dias</option>
+            </select>
+            <select
+              id="transactionTypeFilter"
+              value={transactionTypeFilter}
+              onChange={(e) => setTransactionTypeFilter(e.target.value)}
+              className="py-2 pl-3 pr-6 bg-white border border-foreground rounded-lg text-foreground appearance-none bg-[url('/static/icons/arrow-down.svg')] bg-no-repeat bg-right focus:outline-none focus:ring-2 focus:ring-tomato focus:border-transparent transition"
+              disabled={loadingKinds}
+            >
+              <option value="">Todos os tipos</option>
+              {kinds.map((kind) => (
+                <option key={kind.code} value={kind.code}>
+                  {kind.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
       {isValidating && transactionsList.length === 0 ? (
         <Loader size="sm" />
       ) : (

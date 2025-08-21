@@ -8,15 +8,36 @@ export async function GET(request: NextRequest) {
   const url = new URL(request.url)
   const page = parseInt(url.searchParams.get('page') ?? '1', 10)
   const limit = parseInt(url.searchParams.get('limit') ?? '5', 10)
-  const from = (page - 1) * limit
-  const to = from + limit - 1
+  const transactionTypeParam = url.searchParams.get('transactionType') ?? ''
+  const periodParam = url.searchParams.get('period') ?? ''
 
-  const { data, error, count } = await supabase
+  const allowedPeriods = new Set(['7', '15', '30'])
+  const period = allowedPeriods.has(periodParam)
+    ? Number(periodParam)
+    : undefined
+
+  let query = supabase
     .from('transactions')
     .select('*', { count: 'exact' })
     .eq('profile_id', user?.id)
-    .order('created_at', { ascending: false })
-    .range(from, to)
+
+  if (transactionTypeParam) {
+    query = query.eq('transaction_type', transactionTypeParam)
+  }
+
+  if (period) {
+    const start = new Date()
+
+    start.setDate(start.getDate() - period)
+    query = query.gte('created_at', start.toISOString())
+  }
+
+  query = query.order('created_at', { ascending: false })
+
+  const from = (page - 1) * limit
+  const to = from + limit - 1
+
+  const { data, error, count } = await query.range(from, to)
 
   if (error) {
     return NextResponse.json(
@@ -27,7 +48,7 @@ export async function GET(request: NextRequest) {
 
   const hasMore = to + 1 < (count ?? 0)
 
-  return NextResponse.json<GetResponse>({ transactions: data, hasMore })
+  return NextResponse.json<GetResponse>({ transactions: data ?? [], hasMore })
 }
 
 export async function POST(request: NextRequest) {

@@ -15,3 +15,8 @@ export interface PostRequestBody {
   amount: number
   transaction_type: string
 }
+
+export interface TransactionsFilters {
+  period?: 7 | 15 | 30
+  transactionType?: string
+}

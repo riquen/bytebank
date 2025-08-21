@@ -115,7 +115,7 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
 
   return (
     <div
-      className={`relative flex flex-col gap-20 sm:gap-4 p-6 bg-silver rounded-lg shadow-md sm:basis-1/2 ${!isHome && 'sm:flex-row sm:justify-between lg:justify-around'}`}
+      className={`relative flex flex-col gap-4 p-6 bg-silver rounded-lg shadow-md sm:basis-1/2 ${!isHome && 'sm:flex-row sm:justify-between lg:justify-around'}`}
     >
       <div
         className={`flex flex-col gap-6 text-center ${!isHome && 'sm:basis-1/2 lg:max-w-lg'}`}

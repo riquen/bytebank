@@ -26,7 +26,7 @@ export default function Home() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex flex-col sm:basis-1/2 gap-20 sm:gap-4 p-6 bg-foreground rounded-lg shadow-md text-white">
+        <div className="relative flex flex-col sm:basis-1/2 gap-4 p-6 bg-foreground rounded-lg shadow-md text-white">
           <div className="flex flex-col gap-6">
             <h2 className="font-semibold text-2xl">{`Olá, ${data.name}! :)`}</h2>
             <p className="text-sm">{data.date}</p>
