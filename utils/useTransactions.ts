@@ -5,6 +5,7 @@ import type {
   TransactionData,
   TransactionsFilters,
 } from '@/app/api/transactions/types'
+import { SWR_KEYS } from './swr-keys'
 
 export const LIMIT = 5
 
@@ -21,7 +22,7 @@ export function useTransactions(filters: TransactionsFilters = {}) {
     if (filters.transactionType)
       params.set('transactionType', filters.transactionType)
 
-    return `/api/transactions?${params.toString()}`
+    return `${SWR_KEYS.transactions}?${params.toString()}`
   }
 
   const { data, setSize, mutate, isValidating } = useSWRInfinite<GetResponse>(

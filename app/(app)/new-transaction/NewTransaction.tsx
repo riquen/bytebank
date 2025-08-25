@@ -15,6 +15,7 @@ import { Loader } from '@/components/Loader'
 import Card from '@/public/static/images/card.png'
 import PixelsLight from '@/public/static/images/pixels-light.png'
 import type { TransactionData } from '@/app/api/transactions/types'
+import { SWR_KEYS } from '@/utils/swr-keys'
 
 interface NewTransactionProps {
   transaction_id?: string
@@ -31,7 +32,7 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
 
   const { data: transaction, isLoading: transactionLoading } =
     useSWR<TransactionData>(
-      transaction_id ? `/api/transactions/${transaction_id}` : null,
+      transaction_id ? `${SWR_KEYS.transactions}/${transaction_id}` : null,
       fetcher,
     )
 
@@ -54,8 +55,8 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
     { amount: number; transaction_type: string }
   >(
     transaction_id
-      ? `/api/transactions/${transaction_id}`
-      : '/api/transactions',
+      ? `${SWR_KEYS.transactions}/${transaction_id}`
+      : SWR_KEYS.transactions,
     async (url, { arg }) => {
       const response = await fetch(url, {
         method: isEdit ? 'PATCH' : 'POST',
@@ -81,7 +82,8 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
       )
 
       await mutateTransactions()
-      mutateHome('/api')
+      mutateHome(SWR_KEYS.home)
+      mutateHome(SWR_KEYS.summary)
 
       setAmountFormatted('')
       setTransactionType('')

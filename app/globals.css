@@ -9,6 +9,10 @@
   --silver: #CBCBCB;
   --battleship-gray: #8B8B8B;
   --azure: #DEE9EA;
+  --persian-green: #2A9D8F;
+  --sandy-brown: #F4A261;
+  --charcoal: #264653;
+  --burnt-sienna: #E76F51;
 }
 
 @theme inline {
@@ -20,6 +24,10 @@
   --color-silver: var(--silver);
   --color-battleship-gray: var(--battleship-gray);
   --color-azure: var(--azure);
+  --color-persian-green: var(--persian-green);
+  --color-sandy-brown: var(--sandy-brown);
+  --color-charcoal: var(--charcoal);
+  --color-burnt-sienna: var(--burnt-sienna);
 }
 
 body {

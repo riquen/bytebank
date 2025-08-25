@@ -15,6 +15,7 @@ import { Loader } from '@/components/Loader'
 import { formatBRDateFromISO } from '@/utils/date'
 import { useTransactionKinds } from '@/utils/useTransactionKinds'
 import { type TransactionsFilters } from '@/app/api/transactions/types'
+import { SWR_KEYS } from '@/utils/swr-keys'
 
 export default function Statement() {
   const router = useRouter()
@@ -61,15 +62,19 @@ export default function Statement() {
     setDeletingId(transaction_id)
 
     try {
-      const response = await fetch(`/api/transactions/${transaction_id}`, {
-        method: 'DELETE',
-      })
+      const response = await fetch(
+        `${SWR_KEYS.transactions}/${transaction_id}`,
+        {
+          method: 'DELETE',
+        },
+      )
 
       if (!response.ok) throw new Error()
 
       toast.success('Transação removida!')
       await mutateTransactions()
-      mutateHome('/api')
+      mutateHome(SWR_KEYS.home)
+      mutateHome(SWR_KEYS.summary)
     } catch {
       toast.error('Não foi possível excluir')
     } finally {
@@ -88,7 +93,7 @@ export default function Statement() {
   }, [period, transactionTypeFilter, isHome, setSize])
 
   return (
-    <div className="flex flex-col gap-4 p-6 bg-white rounded-lg shadow-md">
+    <div className="flex flex-col sm:basis-1/2 gap-4 p-6 bg-white rounded-lg shadow-md">
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <h2 className="font-bold text-2xl">Extrato</h2>
         {!isHome && (
@@ -144,12 +149,12 @@ export default function Statement() {
                     key={transaction_id}
                     className="flex items-center justify-between border-b border-foreground py-2"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:w-full">
-                      <p className="sm:flex-1">{transaction_type}</p>
-                      <p className={`sm:flex-1 font-semibold ${amountColor}`}>
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:w-full">
+                      <p className="lg:flex-1">{transaction_type}</p>
+                      <p className={`lg:flex-1 font-semibold ${amountColor}`}>
                         {`${operator}${formatCurrency(amount)}`}
                       </p>
-                      <p className="sm:flex-1 text-xs text-battleship-gray">
+                      <p className="lg:flex-1 text-xs text-battleship-gray">
                         {formatBRDateFromISO(created_at)}
                       </p>
                     </div>

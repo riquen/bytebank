@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { requireSession } from '@/utils/require-session'
+import { sinceStartOfNDaysAgoUTC } from '@/utils/timezone-range'
 import type { GetResponse, PostRequestBody } from './types'
 
 export async function GET(request: NextRequest) {
@@ -26,10 +27,9 @@ export async function GET(request: NextRequest) {
   }
 
   if (period) {
-    const start = new Date()
+    const sinceUTC = sinceStartOfNDaysAgoUTC(period)
 
-    start.setDate(start.getDate() - period)
-    query = query.gte('created_at', start.toISOString())
+    query = query.gte('created_at', sinceUTC.toISOString())
   }
 
   query = query.order('created_at', { ascending: false })
