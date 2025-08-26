@@ -1,18 +1,18 @@
 import useSWR from 'swr'
 import { fetcher } from '@/utils/fetcher'
-import type { TransactionsCount } from '@/app/api/transactions/summary/types'
+import type { TransactionsSummary } from '@/app/api/transactions/summary/types'
 import { SWR_KEYS } from './swr-keys'
 
 export function useTransactionsSummary() {
-  const { data, error, isLoading } = useSWR<TransactionsCount>(
+  const { data, error, isLoading } = useSWR<TransactionsSummary>(
     SWR_KEYS.summary,
     fetcher,
     { revalidateOnFocus: false },
   )
 
   return {
-    counts: data?.counts ?? {},
-    total: data?.total ?? 0,
+    amounts: data?.amounts ?? {},
+    totalAmount: data?.totalAmount ?? 0,
     isLoading,
     error,
   }

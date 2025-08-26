@@ -1,4 +1,4 @@
-export interface TransactionsCount {
-  total: number
-  counts: Record<string, number>
+export interface TransactionsSummary {
+  totalAmount: number
+  amounts: Record<string, number>
 }

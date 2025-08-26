@@ -71,10 +71,10 @@ export default function Statement() {
 
       if (!response.ok) throw new Error()
 
-      toast.success('Transação removida!')
       await mutateTransactions()
       mutateHome(SWR_KEYS.home)
       mutateHome(SWR_KEYS.summary)
+      toast.success('Transação removida!')
     } catch {
       toast.error('Não foi possível excluir')
     } finally {
@@ -149,12 +149,20 @@ export default function Statement() {
                     key={transaction_id}
                     className="flex items-center justify-between border-b border-foreground py-2"
                   >
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:w-full">
-                      <p className="lg:flex-1">{transaction_type}</p>
-                      <p className={`lg:flex-1 font-semibold ${amountColor}`}>
+                    <div
+                      className={`flex flex-col ${isHome ? 'lg:flex-row lg:items-center lg:w-full' : 'sm:flex-row sm:items-center sm:w-full'}`}
+                    >
+                      <p className={`${isHome ? 'lg:flex-1' : 'sm:flex-1'}`}>
+                        {transaction_type}
+                      </p>
+                      <p
+                        className={`${isHome ? 'lg:flex-1' : 'sm:flex-1'} font-semibold ${amountColor}`}
+                      >
                         {`${operator}${formatCurrency(amount)}`}
                       </p>
-                      <p className="lg:flex-1 text-xs text-battleship-gray">
+                      <p
+                        className={`${isHome ? 'lg:flex-1' : 'sm:flex-1'} text-xs text-battleship-gray`}
+                      >
                         {formatBRDateFromISO(created_at)}
                       </p>
                     </div>

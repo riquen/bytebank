@@ -36,8 +36,8 @@ export default function Login() {
       return
     }
 
-    toast.success('Login realizado com sucesso!')
     router.replace('/')
+    toast.success('Login realizado com sucesso!')
   }
 
   const canSubmit = email !== '' && password !== '' && !loading

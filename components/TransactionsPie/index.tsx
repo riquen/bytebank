@@ -1,9 +1,17 @@
 'use client'
 
-import { ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+  Tooltip,
+} from 'recharts'
 import { Loader } from '@/components/Loader'
 import { useTransactionsSummary } from '@/utils/useTransactionsSummary'
 import { useTransactionKinds } from '@/utils/useTransactionKinds'
+import { formatCurrency } from '@/utils/currency'
 
 const PALETTE = [
   'var(--persian-green)',
@@ -13,11 +21,15 @@ const PALETTE = [
 ]
 
 export function TransactionsPie() {
-  const { counts, total, isLoading: loadingSummary } = useTransactionsSummary()
+  const {
+    amounts,
+    totalAmount,
+    isLoading: loadingSummary,
+  } = useTransactionsSummary()
   const { kinds, isLoading: loadingKinds } = useTransactionKinds()
 
   const data = kinds
-    .map((kind) => ({ name: kind.label, value: counts[kind.code] ?? 0 }))
+    .map((kind) => ({ name: kind.label, value: amounts[kind.code] ?? 0 }))
     .filter((item) => item.value > 0)
 
   const isLoading = loadingSummary || loadingKinds
@@ -39,10 +51,10 @@ export function TransactionsPie() {
                   Últimos 30 dias
                 </p>
                 <p className="text-end text-sm text-battleship-gray">
-                  Total de transações: {total}
+                  Total movimentado: {formatCurrency(totalAmount)}
                 </p>
               </div>
-              <div className="h-96 sm:h-full">
+              <div className="h-96 sm:h-full [&_svg]:outline-none">
                 <ResponsiveContainer>
                   <PieChart>
                     <Pie
@@ -50,7 +62,6 @@ export function TransactionsPie() {
                       innerRadius={60}
                       outerRadius={90}
                       paddingAngle={2}
-                      label={({ value }) => value}
                       className="outline-none"
                     >
                       {data.map(({ name }, index) => (
@@ -60,6 +71,10 @@ export function TransactionsPie() {
                         />
                       ))}
                     </Pie>
+                    <Tooltip
+                      separator=": "
+                      formatter={(value) => formatCurrency(Number(value))}
+                    />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>

@@ -40,6 +40,7 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
 
   const [amountFormatted, setAmountFormatted] = useState('')
   const [transactionType, setTransactionType] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     if (!transactionLoading && transaction) {
@@ -48,7 +49,7 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
     }
   }, [transactionLoading, transaction])
 
-  const { trigger: saveTransaction, isMutating: saving } = useSWRMutation<
+  const { trigger: saveTransaction } = useSWRMutation<
     unknown,
     any,
     string,
@@ -73,24 +74,30 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
   const handleSubmit = useCallback(async () => {
     const raw = amountFormatted.replace(/\D/g, '')
     const amount = Number(raw) / 100
-    if (amount <= 0 || !transactionType) return
+    if (amount <= 0 || !transactionType || submitting) return
 
+    setSubmitting(true)
     try {
       await saveTransaction({ amount, transaction_type: transactionType })
-      toast.success(
-        `Transação ${isEdit ? 'atualizada' : 'adicionada'} com sucesso!`,
-      )
 
       await mutateTransactions()
-      mutateHome(SWR_KEYS.home)
-      mutateHome(SWR_KEYS.summary)
+      await Promise.all([
+        mutateHome(SWR_KEYS.home),
+        mutateHome(SWR_KEYS.summary),
+      ])
 
-      setAmountFormatted('')
-      setTransactionType('')
-
-      if (isEdit) router.back()
+      if (isEdit) {
+        router.back()
+        toast.success('Transação atualizada com sucesso!')
+      } else {
+        setAmountFormatted('')
+        setTransactionType('')
+        toast.success('Transação adicionada com sucesso!')
+      }
     } catch {
       toast.error('Erro ao salvar transação')
+    } finally {
+      setSubmitting(false)
     }
   }, [
     amountFormatted,
@@ -100,6 +107,7 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
     mutateTransactions,
     mutateHome,
     router,
+    submitting,
   ])
 
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,7 +119,7 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
   if (transactionLoading) return <Loader />
 
   const canSubmit =
-    !saving &&
+    !submitting &&
     transactionType !== '' &&
     Number(amountFormatted.replace(/\D/g, '')) > 0
 
@@ -140,7 +148,7 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
           value={transactionType}
           onChange={(e) => setTransactionType(e.target.value)}
           className="py-2 pl-3 bg-white border border-foreground rounded-lg text-foreground appearance-none bg-[url('/static/icons/arrow-down.svg')] bg-no-repeat bg-right focus:outline-none focus:ring-2 focus:ring-tomato focus:border-transparent transition"
-          disabled={loadingKinds}
+          disabled={loadingKinds || submitting}
         >
           <option value="" disabled>
             Selecione o tipo de transação
@@ -156,7 +164,7 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
           onClick={handleSubmit}
           className="py-2 rounded-lg bg-foreground cursor-pointer font-semibold text-white focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed active:opacity-80 hover:opacity-80 transition-opacity"
         >
-          {saving ? <Loader size="sm" color="background" /> : 'Salvar'}
+          {submitting ? <Loader size="sm" color="background" /> : 'Salvar'}
         </button>
       </div>
       <Image
