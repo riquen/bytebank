@@ -1,7 +1,7 @@
 import useSWR from 'swr'
 import { fetcher } from '@/utils/fetcher'
 import type { TransactionsSummary } from '@/app/api/transactions/summary/types'
-import { SWR_KEYS } from './swr-keys'
+import { SWR_KEYS } from '@/utils/swr-keys'
 
 export function useTransactionsSummary() {
   const { data, error, isLoading } = useSWR<TransactionsSummary>(

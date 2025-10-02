@@ -9,8 +9,8 @@ import {
   Tooltip,
 } from 'recharts'
 import { Loader } from '@/components/Loader'
-import { useTransactionsSummary } from '@/utils/useTransactionsSummary'
-import { useTransactionKinds } from '@/utils/useTransactionKinds'
+import { useTransactionKinds } from '@/modules/transactions/hooks/useTransactionKinds'
+import { useTransactionsSummary } from '@/modules/transactions/hooks/useTransactionsSummary'
 import { formatCurrency } from '@/utils/currency'
 
 const PALETTE = [

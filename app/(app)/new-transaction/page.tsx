@@ -1,4 +1,4 @@
-import { NewTransaction } from './NewTransaction'
+import { NewTransaction } from '@/modules/transactions'
 
 interface NewTransactionPageProps {
   readonly searchParams: Promise<{ readonly transaction_id?: string }>
