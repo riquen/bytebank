@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { createWithEqualityFn } from 'zustand/traditional'
 import { type TransactionsFilters } from '@/app/api/transactions/types'
 
 export type PeriodOption = '' | '7' | '15' | '30'
@@ -29,7 +29,7 @@ const INITIAL_TRANSACTION_TYPE = ''
 export type TransactionsFiltersStore =
   TransactionsFiltersState & TransactionsFiltersActions
 
-export const useTransactionsFiltersStore = create<TransactionsFiltersStore>((set) => ({
+export const useTransactionsFiltersStore = createWithEqualityFn<TransactionsFiltersStore>((set) => ({
   period: INITIAL_PERIOD,
   transactionType: INITIAL_TRANSACTION_TYPE,
   filters: {},
