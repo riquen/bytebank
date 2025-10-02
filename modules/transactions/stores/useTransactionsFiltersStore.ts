@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { type TransactionsFilters } from '@/app/api/transactions/types'
 
-type PeriodOption = '' | '7' | '15' | '30'
+export type PeriodOption = '' | '7' | '15' | '30'
 
 type TransactionsFiltersState = {
   period: PeriodOption
@@ -26,9 +26,10 @@ const buildFilters = (
 const INITIAL_PERIOD: PeriodOption = ''
 const INITIAL_TRANSACTION_TYPE = ''
 
-export const useTransactionsFiltersStore = create<
+export type TransactionsFiltersStore =
   TransactionsFiltersState & TransactionsFiltersActions
->((set) => ({
+
+export const useTransactionsFiltersStore = create<TransactionsFiltersStore>((set) => ({
   period: INITIAL_PERIOD,
   transactionType: INITIAL_TRANSACTION_TYPE,
   filters: {},

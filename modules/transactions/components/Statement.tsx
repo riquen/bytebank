@@ -14,9 +14,20 @@ import Delete from '@/public/static/icons/delete.svg'
 import { Loader } from '@/components/Loader'
 import { formatBRDateFromISO } from '@/utils/date'
 import { useTransactionKinds } from '@/modules/transactions/hooks/useTransactionKinds'
-import { useTransactionsFiltersStore } from '@/modules/transactions/stores/useTransactionsFiltersStore'
+import {
+  useTransactionsFiltersStore,
+  type TransactionsFiltersStore,
+} from '@/modules/transactions/stores/useTransactionsFiltersStore'
 import { shallow } from 'zustand/shallow'
 import { SWR_KEYS } from '@/utils/swr-keys'
+
+const selectTransactionsFilters = (state: TransactionsFiltersStore) => ({
+  period: state.period,
+  transactionTypeFilter: state.transactionType,
+  setPeriod: state.setPeriod,
+  setTransactionTypeFilter: state.setTransactionType,
+  filters: state.filters,
+})
 
 export function Statement() {
   const router = useRouter()
@@ -26,22 +37,8 @@ export function Statement() {
   const { mutate: mutateHome } = useSWRConfig()
   const { ref, inView } = useInView({ rootMargin: '200px' })
 
-  const {
-    period,
-    transactionTypeFilter,
-    setPeriod,
-    setTransactionTypeFilter,
-    filters,
-  } = useTransactionsFiltersStore(
-    (state) => ({
-      period: state.period,
-      transactionTypeFilter: state.transactionType,
-      setPeriod: state.setPeriod,
-      setTransactionTypeFilter: state.setTransactionType,
-      filters: state.filters,
-    }),
-    shallow,
-  )
+  const { period, transactionTypeFilter, setPeriod, setTransactionTypeFilter, filters } =
+    useTransactionsFiltersStore(selectTransactionsFilters, shallow)
 
   const {
     transactions,
