@@ -1,12 +1,12 @@
 import useSWR from 'swr'
-import { fetcher } from '@/utils/fetcher'
-import type { TransactionsSummary } from '@/app/api/transactions/summary/types'
+import type { TransactionsSummary } from '../../domain/entities'
+import { getTransactionsSummaryUseCase } from '../../infrastructure/dependencies'
 import { SWR_KEYS } from '@/utils/swr-keys'
 
 export function useTransactionsSummary() {
   const { data, error, isLoading } = useSWR<TransactionsSummary>(
     SWR_KEYS.summary,
-    fetcher,
+    () => getTransactionsSummaryUseCase.execute(),
     { revalidateOnFocus: false },
   )
 

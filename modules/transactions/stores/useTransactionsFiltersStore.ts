@@ -1,5 +1,5 @@
 import { createWithEqualityFn } from 'zustand/traditional'
-import { type TransactionsFilters } from '@/app/api/transactions/types'
+import type { TransactionsFilters } from '@/modules/transactions/domain/entities'
 
 export type PeriodOption = '' | '7' | '15' | '30'
 

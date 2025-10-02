@@ -2,20 +2,22 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import useSWR, { useSWRConfig } from 'swr'
+import { useSWRConfig } from 'swr'
 import useSWRMutation from 'swr/mutation'
 import { toast } from 'react-toastify'
 import Image from 'next/image'
 import { imageHelper } from '@/utils/image-helper'
 import { formatCurrency } from '@/utils/currency'
-import { fetcher } from '@/utils/fetcher'
-import { useTransactionKinds } from '@/modules/transactions/hooks/useTransactionKinds'
-import { useTransactions } from '@/modules/transactions/hooks/useTransactions'
+import {
+  useTransaction,
+  useTransactionKinds,
+  useTransactions,
+} from '@/modules/transactions/presentation/hooks'
 import { Loader } from '@/components/Loader'
 import Card from '@/public/static/images/card.png'
 import PixelsLight from '@/public/static/images/pixels-light.png'
-import type { TransactionData } from '@/app/api/transactions/types'
 import { SWR_KEYS } from '@/utils/swr-keys'
+import { saveTransactionUseCase } from '@/modules/transactions/infrastructure/dependencies'
 
 interface NewTransactionProps {
   transaction_id?: string
@@ -31,10 +33,7 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
   const { mutate: mutateTransactions } = useTransactions()
 
   const { data: transaction, isLoading: transactionLoading } =
-    useSWR<TransactionData>(
-      transaction_id ? `${SWR_KEYS.transactions}/${transaction_id}` : null,
-      fetcher,
-    )
+    useTransaction(transaction_id)
 
   const { kinds, isLoading: loadingKinds } = useTransactionKinds()
 
@@ -51,24 +50,16 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
 
   const { trigger: saveTransaction } = useSWRMutation<
     unknown,
-    any,
+    Error,
     string,
     { amount: number; transaction_type: string }
   >(
-    transaction_id
-      ? `${SWR_KEYS.transactions}/${transaction_id}`
-      : SWR_KEYS.transactions,
-    async (url, { arg }) => {
-      const response = await fetch(url, {
-        method: isEdit ? 'PATCH' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(arg),
-      })
-
-      if (!response.ok) throw new Error('Erro ao salvar')
-
-      return response.json()
-    },
+    transaction_id ?? 'transaction:new',
+    async (_, { arg }) =>
+      saveTransactionUseCase.execute({
+        transactionId: transaction_id,
+        ...arg,
+      }),
   )
 
   const handleSubmit = useCallback(async () => {
