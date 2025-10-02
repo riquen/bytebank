@@ -7,15 +7,17 @@ import { imageHelper } from '@/utils/image-helper'
 import { fetcher } from '@/utils/fetcher'
 import { formatCurrency } from '@/utils/currency'
 import { Loader } from '@/components/Loader'
-import { TransactionsPie } from '@/components/TransactionsPie'
+import {
+  NewTransaction,
+  Statement,
+  TransactionsPie,
+} from '@/modules/transactions'
 import Eye from '@/public/static/icons/eye.svg'
 import EyeOff from '@/public/static/icons/eye-off.svg'
 import Pig from '@/public/static/images/pig.png'
 import PixelsDark from '@/public/static/images/pixels-dark.png'
 import { SWR_KEYS } from '@/utils/swr-keys'
 import { type HomeData } from '../api/types'
-import Statement from './statement/page'
-import { NewTransaction } from './new-transaction/NewTransaction'
 
 export default function Home() {
   const { data, isValidating } = useSWR<HomeData>(SWR_KEYS.home, fetcher, {

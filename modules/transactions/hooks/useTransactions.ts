@@ -5,7 +5,7 @@ import type {
   TransactionData,
   TransactionsFilters,
 } from '@/app/api/transactions/types'
-import { SWR_KEYS } from './swr-keys'
+import { SWR_KEYS } from '@/utils/swr-keys'
 
 export const LIMIT = 5
 
