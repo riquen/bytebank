@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import useSWRInfinite from 'swr/infinite'
+import useSWRInfinite, { type SWRInfiniteKeyLoader } from 'swr/infinite'
 import type {
   Transaction,
   TransactionListResult,
@@ -21,10 +21,11 @@ export function useTransactions(filters: TransactionsFilters = {}) {
     [period, transactionType],
   )
 
-  const getKey = (
-    pageIndex: number,
-    previousPage: TransactionListResult | null,
-  ): TransactionsKey | null => {
+  const getKey: SWRInfiniteKeyLoader<
+    TransactionListResult,
+    Error,
+    TransactionsKey
+  > = (pageIndex, previousPage) => {
     if (previousPage && !previousPage.hasMore) return null
 
     return ['transactions', pageIndex + 1, normalizedFilters]
