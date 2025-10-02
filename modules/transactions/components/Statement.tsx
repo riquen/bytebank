@@ -14,7 +14,8 @@ import Delete from '@/public/static/icons/delete.svg'
 import { Loader } from '@/components/Loader'
 import { formatBRDateFromISO } from '@/utils/date'
 import { useTransactionKinds } from '@/modules/transactions/hooks/useTransactionKinds'
-import { type TransactionsFilters } from '@/app/api/transactions/types'
+import { useTransactionsFiltersStore } from '@/modules/transactions/stores/useTransactionsFiltersStore'
+import { shallow } from 'zustand/shallow'
 import { SWR_KEYS } from '@/utils/swr-keys'
 
 export function Statement() {
@@ -25,15 +26,21 @@ export function Statement() {
   const { mutate: mutateHome } = useSWRConfig()
   const { ref, inView } = useInView({ rootMargin: '200px' })
 
-  const [period, setPeriod] = useState<'' | '7' | '15' | '30'>('')
-  const [transactionTypeFilter, setTransactionTypeFilter] = useState<string>('')
-
-  const filters: TransactionsFilters = useMemo(
-    () => ({
-      period: period ? (Number(period) as 7 | 15 | 30) : undefined,
-      transactionType: transactionTypeFilter || undefined,
+  const {
+    period,
+    transactionTypeFilter,
+    setPeriod,
+    setTransactionTypeFilter,
+    filters,
+  } = useTransactionsFiltersStore(
+    (state) => ({
+      period: state.period,
+      transactionTypeFilter: state.transactionType,
+      setPeriod: state.setPeriod,
+      setTransactionTypeFilter: state.setTransactionType,
+      filters: state.filters,
     }),
-    [period, transactionTypeFilter],
+    shallow,
   )
 
   const {
