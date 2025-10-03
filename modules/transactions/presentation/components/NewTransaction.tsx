@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { useSWRConfig } from 'swr'
 import useSWRMutation from 'swr/mutation'
 import { toast } from 'react-toastify'
 import Image from 'next/image'
@@ -11,13 +10,13 @@ import { formatCurrency } from '@/utils/currency'
 import {
   useTransaction,
   useTransactionKinds,
-  useTransactions,
 } from '@/modules/transactions/presentation/hooks'
 import { Loader } from '@/components/Loader'
 import Card from '@/public/static/images/card.png'
 import PixelsLight from '@/public/static/images/pixels-light.png'
-import { SWR_KEYS } from '@/utils/swr-keys'
 import { saveTransactionUseCase } from '@/modules/transactions/infrastructure/dependencies'
+import { emitTransactionEvent } from '@/modules/transactions/presentation/events/transaction-events'
+import type { Transaction } from '@/modules/transactions/domain/entities'
 
 interface NewTransactionProps {
   transaction_id?: string
@@ -28,9 +27,6 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
   const pathname = usePathname()
   const isHome = pathname === '/'
   const isEdit = Boolean(transaction_id)
-
-  const { mutate: mutateHome } = useSWRConfig()
-  const { mutate: mutateTransactions } = useTransactions()
 
   const { data: transaction, isLoading: transactionLoading } =
     useTransaction(transaction_id)
@@ -49,7 +45,7 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
   }, [transactionLoading, transaction])
 
   const { trigger: saveTransaction } = useSWRMutation<
-    unknown,
+    Transaction,
     Error,
     string,
     { amount: number; transaction_type: string }
@@ -69,13 +65,15 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
 
     setSubmitting(true)
     try {
-      await saveTransaction({ amount, transaction_type: transactionType })
+      const result = await saveTransaction({
+        amount,
+        transaction_type: transactionType,
+      })
 
-      await mutateTransactions()
-      await Promise.all([
-        mutateHome(SWR_KEYS.home),
-        mutateHome(SWR_KEYS.summary),
-      ])
+      emitTransactionEvent({
+        type: isEdit ? 'updated' : 'created',
+        transaction: result,
+      })
 
       if (isEdit) {
         router.back()
@@ -95,8 +93,6 @@ export const NewTransaction = ({ transaction_id }: NewTransactionProps) => {
     transactionType,
     isEdit,
     saveTransaction,
-    mutateTransactions,
-    mutateHome,
     router,
     submitting,
   ])
