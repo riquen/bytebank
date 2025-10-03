@@ -4,9 +4,12 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useSWRConfig } from 'swr'
 import { imageHelper } from '@/utils/image-helper'
 import Avatar from '@/public/static/icons/avatar.svg'
 import { supabaseClient } from '@/lib/supabase'
+import { SWR_KEYS } from '@/utils/swr-keys'
+import { useTransactionEvents } from '@/modules/transactions/presentation/hooks'
 
 const NAV_ITEMS = [
   { label: 'Início', href: '/' },
@@ -20,8 +23,16 @@ export const Header = () => {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = supabaseClient()
+  const { mutate } = useSWRConfig()
 
   const toggleMenu = useCallback(() => setIsOpen((prev) => !prev), [])
+
+  const handleTransactionEvent = useCallback(() => {
+    void mutate(SWR_KEYS.home)
+    void mutate(SWR_KEYS.summary)
+  }, [mutate])
+
+  useTransactionEvents(handleTransactionEvent)
 
   const handleLogout = async () => {
     await supabase.auth.signOut()

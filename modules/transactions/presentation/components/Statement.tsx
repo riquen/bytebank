@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { useSWRConfig } from 'swr'
 import { useInView } from 'react-intersection-observer'
 import { toast } from 'react-toastify'
 import Image from 'next/image'
@@ -21,8 +20,8 @@ import {
   type TransactionsFiltersStore,
 } from '@/modules/transactions/stores/useTransactionsFiltersStore'
 import { shallow } from 'zustand/shallow'
-import { SWR_KEYS } from '@/utils/swr-keys'
 import { deleteTransactionUseCase } from '@/modules/transactions/infrastructure/dependencies'
+import { emitTransactionEvent } from '@/modules/transactions/presentation/events/transaction-events'
 
 const selectTransactionsFilters = (state: TransactionsFiltersStore) => ({
   period: state.period,
@@ -37,7 +36,6 @@ export function Statement() {
   const pathname = usePathname()
   const isHome = pathname === '/'
 
-  const { mutate: mutateHome } = useSWRConfig()
   const { ref, inView } = useInView({ rootMargin: '200px' })
 
   const { period, transactionTypeFilter, setPeriod, setTransactionTypeFilter, filters } =
@@ -47,7 +45,6 @@ export function Statement() {
     transactions,
     hasMore,
     setSize,
-    mutate: mutateTransactions,
     isValidating,
   } = useTransactions(isHome ? {} : filters)
 
@@ -72,9 +69,10 @@ export function Statement() {
       try {
         await deleteTransactionUseCase.execute({ transactionId: transaction_id })
 
-        await mutateTransactions()
-        mutateHome(SWR_KEYS.home)
-        mutateHome(SWR_KEYS.summary)
+        emitTransactionEvent({
+          type: 'deleted',
+          transactionId: transaction_id,
+        })
         toast.success('Transação removida!')
       } catch {
         toast.error('Não foi possível excluir')
@@ -82,7 +80,7 @@ export function Statement() {
         setDeletingId(null)
       }
     },
-    [deletingId, mutateTransactions, mutateHome],
+    [deletingId],
   )
 
   useEffect(() => {
