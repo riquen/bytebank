@@ -23,7 +23,7 @@ export function useTransactions(filters: TransactionsFilters = {}) {
 
   const getKey: SWRInfiniteKeyLoader<
     TransactionListResult,
-    TransactionsKey
+    TransactionsKey | null
   > = (pageIndex, previousPage) => {
     if (previousPage && !previousPage.hasMore) return null
 
@@ -33,7 +33,7 @@ export function useTransactions(filters: TransactionsFilters = {}) {
   const { data, setSize, mutate, isValidating } = useSWRInfinite<
     TransactionListResult,
     Error,
-    TransactionsKey
+    typeof getKey
   >(
     getKey,
     async ([, page, currentFilters]) =>
