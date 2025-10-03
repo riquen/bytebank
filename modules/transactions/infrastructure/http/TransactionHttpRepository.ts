@@ -174,7 +174,7 @@ export class TransactionHttpRepository implements TransactionRepository {
     this.setCache(
       TransactionHttpRepository.getCacheKey(
         TransactionHttpRepository.TRANSACTION_CACHE_PREFIX,
-        transaction.id,
+        transaction.transaction_id,
       ),
       transaction,
     )
