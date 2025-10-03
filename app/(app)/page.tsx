@@ -1,17 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState, type ComponentType } from 'react'
 import useSWR from 'swr'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
+import { useRouter } from 'next/navigation'
 import { imageHelper } from '@/utils/image-helper'
 import { fetcher } from '@/utils/fetcher'
 import { formatCurrency } from '@/utils/currency'
 import { Loader } from '@/components/Loader'
-import {
-  NewTransaction,
-  Statement,
-  TransactionsPie,
-} from '@/modules/transactions'
+import { NewTransaction } from '@/modules/transactions'
 import Eye from '@/public/static/icons/eye.svg'
 import EyeOff from '@/public/static/icons/eye-off.svg'
 import Pig from '@/public/static/images/pig.png'
@@ -19,13 +17,72 @@ import PixelsDark from '@/public/static/images/pixels-dark.png'
 import { SWR_KEYS } from '@/utils/swr-keys'
 import { type HomeData } from '../api/types'
 
+type PreloadableComponent<P = Record<string, never>> = ComponentType<P> & {
+  preload?: () => void
+}
+
+const Statement = dynamic(
+  () =>
+    import('@/modules/transactions/presentation/components/Statement').then(
+      (mod) => mod.Statement,
+    ),
+  {
+    loading: () => <Loader size="sm" />,
+  },
+) as PreloadableComponent
+
+const TransactionsPie = dynamic(
+  () =>
+    import(
+      '@/modules/transactions/presentation/components/TransactionsPie'
+    ).then((mod) => mod.TransactionsPie),
+  {
+    loading: () => <Loader size="sm" />,
+    ssr: false,
+  },
+) as PreloadableComponent
+
+type WindowWithRequestIdleCallback = Window & {
+  requestIdleCallback?: (cb: () => void) => number
+  cancelIdleCallback?: (handle: number) => void
+}
+
 export default function Home() {
+  const router = useRouter()
   const { data, isValidating } = useSWR<HomeData>(SWR_KEYS.home, fetcher, {
     revalidateOnFocus: false,
   })
   const [showBalance, setShowBalance] = useState(true)
 
   const toggleShowBalance = () => setShowBalance((prev) => !prev)
+
+  useEffect(() => {
+    const idleCallback = () => {
+      Statement.preload?.()
+      TransactionsPie.preload?.()
+    }
+
+    const win = window as WindowWithRequestIdleCallback
+
+    if (typeof win.requestIdleCallback === 'function') {
+      const idleId = win.requestIdleCallback(idleCallback)
+
+      return () => {
+        win.cancelIdleCallback?.(idleId)
+      }
+    }
+
+    const timeoutId = window.setTimeout(idleCallback, 200)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [])
+
+  useEffect(() => {
+    router.prefetch('/statement')
+    router.prefetch('/new-transaction')
+  }, [router])
 
   if (!data) return <Loader />
 
