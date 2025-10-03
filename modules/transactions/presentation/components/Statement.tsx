@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useSWRConfig } from 'swr'
 import { useInView } from 'react-intersection-observer'
@@ -8,18 +8,21 @@ import { toast } from 'react-toastify'
 import Image from 'next/image'
 import { imageHelper } from '@/utils/image-helper'
 import { formatCurrency } from '@/utils/currency'
-import { useTransactions } from '@/modules/transactions/hooks/useTransactions'
+import {
+  useTransactionKinds,
+  useTransactions,
+} from '@/modules/transactions/presentation/hooks'
 import Edit from '@/public/static/icons/edit.svg'
 import Delete from '@/public/static/icons/delete.svg'
 import { Loader } from '@/components/Loader'
 import { formatBRDateFromISO } from '@/utils/date'
-import { useTransactionKinds } from '@/modules/transactions/hooks/useTransactionKinds'
 import {
   useTransactionsFiltersStore,
   type TransactionsFiltersStore,
 } from '@/modules/transactions/stores/useTransactionsFiltersStore'
 import { shallow } from 'zustand/shallow'
 import { SWR_KEYS } from '@/utils/swr-keys'
+import { deleteTransactionUseCase } from '@/modules/transactions/infrastructure/dependencies'
 
 const selectTransactionsFilters = (state: TransactionsFiltersStore) => ({
   period: state.period,
@@ -61,30 +64,26 @@ export function Statement() {
 
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  const handleDelete = async (transaction_id: string) => {
-    if (deletingId) return
-    setDeletingId(transaction_id)
+  const handleDelete = useCallback(
+    async (transaction_id: string) => {
+      if (deletingId) return
+      setDeletingId(transaction_id)
 
-    try {
-      const response = await fetch(
-        `${SWR_KEYS.transactions}/${transaction_id}`,
-        {
-          method: 'DELETE',
-        },
-      )
+      try {
+        await deleteTransactionUseCase.execute({ transactionId: transaction_id })
 
-      if (!response.ok) throw new Error()
-
-      await mutateTransactions()
-      mutateHome(SWR_KEYS.home)
-      mutateHome(SWR_KEYS.summary)
-      toast.success('Transação removida!')
-    } catch {
-      toast.error('Não foi possível excluir')
-    } finally {
-      setDeletingId(null)
-    }
-  }
+        await mutateTransactions()
+        mutateHome(SWR_KEYS.home)
+        mutateHome(SWR_KEYS.summary)
+        toast.success('Transação removida!')
+      } catch {
+        toast.error('Não foi possível excluir')
+      } finally {
+        setDeletingId(null)
+      }
+    },
+    [deletingId, mutateTransactions, mutateHome],
+  )
 
   useEffect(() => {
     if (isHome) return
