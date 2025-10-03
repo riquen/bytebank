@@ -23,7 +23,6 @@ export function useTransactions(filters: TransactionsFilters = {}) {
 
   const getKey: SWRInfiniteKeyLoader<
     TransactionListResult,
-    Error,
     TransactionsKey
   > = (pageIndex, previousPage) => {
     if (previousPage && !previousPage.hasMore) return null
