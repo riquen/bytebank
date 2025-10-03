@@ -23,6 +23,53 @@ function mapTransaction(transaction: Transaction): Transaction {
 
 export class TransactionHttpRepository implements TransactionRepository {
   private readonly baseUrl = SWR_KEYS.transactions
+  private readonly cache = new Map<string, { timestamp: number; data: unknown }>()
+  private static readonly CACHE_TTL_MS = 30_000
+
+  private static readonly LIST_CACHE_PREFIX = 'transactions:list:'
+  private static readonly TRANSACTION_CACHE_PREFIX = 'transactions:item:'
+  private static readonly SUMMARY_CACHE_KEY = 'transactions:summary'
+
+  private static getCacheKey(prefix: string, value: string) {
+    return `${prefix}${value}`
+  }
+
+  private getFromCache<T>(key: string): T | null {
+    const cached = this.cache.get(key)
+
+    if (!cached) return null
+
+    const isExpired = Date.now() - cached.timestamp >
+      TransactionHttpRepository.CACHE_TTL_MS
+
+    if (isExpired) {
+      this.cache.delete(key)
+      return null
+    }
+
+    return cached.data as T
+  }
+
+  private setCache<T>(key: string, data: T) {
+    this.cache.set(key, { timestamp: Date.now(), data })
+  }
+
+  private invalidateCache(prefix?: string) {
+    if (!prefix) {
+      this.cache.clear()
+      return
+    }
+
+    for (const key of this.cache.keys()) {
+      if (key.startsWith(prefix)) {
+        this.cache.delete(key)
+      }
+    }
+  }
+
+  private cloneTransactions(transactions: Transaction[]) {
+    return transactions.map(mapTransaction)
+  }
 
   async list({
     page,
@@ -33,6 +80,20 @@ export class TransactionHttpRepository implements TransactionRepository {
     limit: number
     filters?: TransactionsFilters
   }): Promise<TransactionListResult> {
+    const cacheKey = TransactionHttpRepository.getCacheKey(
+      TransactionHttpRepository.LIST_CACHE_PREFIX,
+      JSON.stringify({ page, limit, filters }),
+    )
+
+    const cachedResult = this.getFromCache<TransactionListResult>(cacheKey)
+
+    if (cachedResult) {
+      return {
+        hasMore: cachedResult.hasMore,
+        transactions: this.cloneTransactions(cachedResult.transactions),
+      }
+    }
+
     const params = new URLSearchParams({
       page: String(page),
       limit: String(limit),
@@ -50,13 +111,28 @@ export class TransactionHttpRepository implements TransactionRepository {
 
     const data = (await response.json()) as ListResponse
 
-    return {
+    const result = {
       transactions: data.transactions.map(mapTransaction),
       hasMore: data.hasMore,
     }
+
+    this.setCache(cacheKey, result)
+
+    return result
   }
 
   async getById(transactionId: string): Promise<Transaction | null> {
+    const cacheKey = TransactionHttpRepository.getCacheKey(
+      TransactionHttpRepository.TRANSACTION_CACHE_PREFIX,
+      transactionId,
+    )
+
+    const cachedTransaction = this.getFromCache<Transaction | null>(cacheKey)
+
+    if (cachedTransaction) {
+      return mapTransaction(cachedTransaction)
+    }
+
     const response = await fetch(`${this.baseUrl}/${transactionId}`)
 
     if (response.status === 404) {
@@ -69,7 +145,11 @@ export class TransactionHttpRepository implements TransactionRepository {
 
     const data = (await response.json()) as Transaction
 
-    return mapTransaction(data)
+    const transaction = mapTransaction(data)
+
+    this.setCache(cacheKey, transaction)
+
+    return transaction
   }
 
   async create(data: {
@@ -87,8 +167,19 @@ export class TransactionHttpRepository implements TransactionRepository {
     }
 
     const result = (await response.json()) as MutationResponse
+    const transaction = mapTransaction(result.transaction)
 
-    return mapTransaction(result.transaction)
+    this.invalidateCache(TransactionHttpRepository.LIST_CACHE_PREFIX)
+    this.invalidateCache(TransactionHttpRepository.SUMMARY_CACHE_KEY)
+    this.setCache(
+      TransactionHttpRepository.getCacheKey(
+        TransactionHttpRepository.TRANSACTION_CACHE_PREFIX,
+        transaction.transaction_id,
+      ),
+      transaction,
+    )
+
+    return transaction
   }
 
   async update(
@@ -106,8 +197,19 @@ export class TransactionHttpRepository implements TransactionRepository {
     }
 
     const result = (await response.json()) as MutationResponse
+    const transaction = mapTransaction(result.transaction)
 
-    return mapTransaction(result.transaction)
+    this.invalidateCache(TransactionHttpRepository.LIST_CACHE_PREFIX)
+    this.invalidateCache(TransactionHttpRepository.SUMMARY_CACHE_KEY)
+    this.setCache(
+      TransactionHttpRepository.getCacheKey(
+        TransactionHttpRepository.TRANSACTION_CACHE_PREFIX,
+        transactionId,
+      ),
+      transaction,
+    )
+
+    return transaction
   }
 
   async delete(transactionId: string): Promise<void> {
@@ -118,9 +220,29 @@ export class TransactionHttpRepository implements TransactionRepository {
     if (!response.ok) {
       throw new Error('Erro ao remover transação')
     }
+
+    this.invalidateCache(TransactionHttpRepository.LIST_CACHE_PREFIX)
+    this.invalidateCache(TransactionHttpRepository.SUMMARY_CACHE_KEY)
+    this.cache.delete(
+      TransactionHttpRepository.getCacheKey(
+        TransactionHttpRepository.TRANSACTION_CACHE_PREFIX,
+        transactionId,
+      ),
+    )
   }
 
   async getSummary(): Promise<TransactionsSummary> {
+    const cachedSummary = this.getFromCache<TransactionsSummary>(
+      TransactionHttpRepository.SUMMARY_CACHE_KEY,
+    )
+
+    if (cachedSummary) {
+      return {
+        ...cachedSummary,
+        amounts: { ...cachedSummary.amounts },
+      }
+    }
+
     const response = await fetch(SWR_KEYS.summary)
 
     if (!response.ok) {
@@ -129,6 +251,10 @@ export class TransactionHttpRepository implements TransactionRepository {
 
     const data = (await response.json()) as TransactionsSummary
 
-    return { ...data, amounts: { ...data.amounts } }
+    const summary = { ...data, amounts: { ...data.amounts } }
+
+    this.setCache(TransactionHttpRepository.SUMMARY_CACHE_KEY, summary)
+
+    return summary
   }
 }
